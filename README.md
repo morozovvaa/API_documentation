@@ -14,8 +14,8 @@ POST http://127.0.0.1:8000/api/v1/auth/login/
 **Тело запроса:**
 ```json
 {
-    "username": "admin",
-    "password": "ваш_пароль"
+    "username": "username",
+    "password": "password"
 }
 ```
 
@@ -30,7 +30,7 @@ POST http://127.0.0.1:8000/api/v1/auth/login/
 ```bash
 curl -X POST http://127.0.0.1:8000/api/v1/auth/login/ \
   -H "Content-Type: application/json" \
-  -d '{"username": "admin", "password": "ваш_пароль"}'
+  -d '{"username": "username", "password": "password"}'
 ```
 
 **Пример с Postman:**
@@ -40,8 +40,8 @@ curl -X POST http://127.0.0.1:8000/api/v1/auth/login/ \
 4. Body (raw JSON):
    ```json
    {
-       "username": "admin",
-       "password": "ваш_пароль"
+       "username": "username",
+       "password": "password"
    }
    ```
 
@@ -101,6 +101,25 @@ Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026
 │ PATCH           │ ✅ Да                │ Частичное обновление│
 │ DELETE          │ ✅ Да                │ Удаление           │
 └─────────────────┴──────────────────────┴─────────────────────┘
+```
+```
+| HTTP Метод | Требует аутентификации | Описание |
+
+| :--- | :--- | :--- |
+
+| GET | ❌ Нет | Чтение данных |
+
+| OPTIONS | ❌ Нет | Метаданные |
+
+| HEAD | ❌ Нет | Заголовки |
+
+| POST | ✅ Да | Создание |
+
+| PUT | ✅ Да | Полное обновление |
+
+| PATCH | ✅ Да | Частичное обновление |
+
+| DELETE | ✅ Да | Удаление |
 ```
 
 ---

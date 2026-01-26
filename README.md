@@ -89,20 +89,6 @@ Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026
 
 ### Права доступа
 
-```
-┌─────────────────┬──────────────────────┬─────────────────────┐
-│ HTTP Метод      │ Требует аутентификации│ Описание           │
-├─────────────────┼──────────────────────┼─────────────────────┤
-│ GET             │ ❌ Нет               │ Чтение данных      │
-│ OPTIONS         │ ❌ Нет               │ Метаданные         │
-│ HEAD            │ ❌ Нет               │ Заголовки          │
-│ POST            │ ✅ Да                │ Создание           │
-│ PUT             │ ✅ Да                │ Полное обновление  │
-│ PATCH           │ ✅ Да                │ Частичное обновление│
-│ DELETE          │ ✅ Да                │ Удаление           │
-└─────────────────┴──────────────────────┴─────────────────────┘
-```
-
 | HTTP Метод | Требует аутентификации | Описание |
 | :--- | :--- | :--- |
 | GET | ❌ Нет | Чтение данных |
@@ -159,7 +145,7 @@ curl -X POST http://127.0.0.1:8000/api/v1/event/ \
 ```bash
 curl -X POST http://127.0.0.1:8000/api/v1/auth/login/ \
   -H "Content-Type: application/json" \
-  -d '{"username": "admin", "password": "wrong_password"}'
+  -d '{"username": "username", "password": "wrong_password"}'
 ```
 
 **Ответ (400 Bad Request):**
@@ -274,7 +260,7 @@ GET /api/v1/event/?street=175&ordering=-date&page=2
             "title": "Заложена Петропавловская крепость",
             "date": "1703-05-27",
             "description_html": "<p>27 мая 1703 года...</p>",
-            "image": "events_images/abc123.jpg",
+            "image": "full/3549d4fe868d4f73afe1dd7a620fd8c75741556c.jpg",
             "street": null
         }
     ]
@@ -572,7 +558,7 @@ GET /api/v1/person/?ordering=-birth_date    → по дате рождения (
 ?full_text=Абрамов    → ищет в ФИО + description_html + article_html
 ```
 
-**Ответ:**
+**Ответ: 200 OK**
 ```json
 {
     "count": 208,
@@ -588,7 +574,7 @@ GET /api/v1/person/?ordering=-birth_date    → по дате рождения (
             "death_date": "1983-05-14",
             "description_html": "Писатель, литературовед...",
             "article_html": "<p>Федор Абрамов родился...</p>",
-            "image": "persons_images/516e2ba0174ab51a5e13cc2bb5953d5fab2b1889.jpg"
+            "image": "full/516e2ba0174ab51a5e13cc2bb5953d5fab2b1889.jpg"
         }
     ]
 }
@@ -642,6 +628,7 @@ Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026
 }
 ```
 
+
 **Пример с curl:**
 ```bash
 curl -X POST http://127.0.0.1:8000/api/v1/person/ \
@@ -654,6 +641,21 @@ curl -X POST http://127.0.0.1:8000/api/v1/person/ \
     "birth_date": "1950-01-01",
     "description_html": "<p>Краткое описание</p>"
   }'
+```
+
+**Ответ: 201 Created**
+```
+{
+    "id": 418,
+    "image": null,
+    "last_name": "Иванов",
+    "first_name": "Иван",
+    "middle_name": "Иванович",
+    "birth_date": "1950-01-01",
+    "death_date": null,
+    "description_html": "<p>Краткое описание</p>",
+    "article_html": "<p>Полная биография</p>"
+}
 ```
 
 ---
@@ -725,6 +727,149 @@ GET /api/v1/person-book/
 GET /api/v1/event-book/
 GET /api/v1/person-profession/
 ```
+
+---
+
+## Атрибуты для создания каждой связи
+
+### 1. Person ↔ Event (Персона связана с событием)
+
+**POST /api/v1/person-event/**
+
+```json
+{
+    "person_id": 210,
+    "event_id": 394
+}
+```
+
+**Пример с curl:**
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/person-event/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token ВАШ_ТОКЕН" \
+  -d '{"person_id": 210, "event_id": 394}'
+```
+
+---
+
+### 2. Person ↔ Keyword (Теги персоны)
+
+**POST /api/v1/person-keyword/**
+
+```json
+{
+    "person_id": 210,
+    "keyword_id": 7
+}
+```
+
+**Пример:**
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/person-keyword/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token ВАШ_ТОКЕН" \
+  -d '{"person_id": 210, "keyword_id": 7}'
+```
+
+---
+
+### 3. Event ↔ Keyword (Теги события)
+
+**POST /api/v1/event-keyword/**
+
+```json
+{
+    "event_id": 394,
+    "keyword_id": 7
+}
+```
+
+**Пример:**
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/event-keyword/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token ВАШ_ТОКЕН" \
+  -d '{"event_id": 394, "keyword_id": 7}'
+```
+
+---
+
+### 4. Person ↔ Book (Книги о персоне)
+
+**POST /api/v1/person-book/**
+
+```json
+{
+    "person_id": 210,
+    "book_id": 8
+}
+```
+
+**Пример:**
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/person-book/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token ВАШ_ТОКЕН" \
+  -d '{"person_id": 210, "book_id": 8}'
+```
+
+---
+
+### 5. Event ↔ Book (Книги, связанные с событием)
+
+**POST /api/v1/event-book/**
+
+```json
+{
+    "event_id": 394,
+    "book_id": 8
+}
+```
+
+**Пример:**
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/event-book/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token ВАШ_ТОКЕН" \
+  -d '{"event_id": 394, "book_id": 8}'
+```
+
+---
+
+### 6. Person ↔ Profession (Профессии персоны)
+
+**POST /api/v1/person-profession/**
+
+```json
+{
+    "person_id": 210,
+    "profession_id": 1
+}
+```
+
+**Пример:**
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/person-profession/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token ВАШ_ТОКЕН" \
+  -d '{"person_id": 210, "profession_id": 1}'
+```
+
+---
+
+## Сводная таблица атрибутов
+
+| Связь | Endpoint | Атрибуты |
+|-------|----------|----------|
+| Person ↔ Event | `/api/v1/person-event/` | `person_id`, `event_id` |
+| Person ↔ Keyword | `/api/v1/person-keyword/` | `person_id`, `keyword_id` |
+| Event ↔ Keyword | `/api/v1/event-keyword/` | `event_id`, `keyword_id` |
+| Person ↔ Book | `/api/v1/person-book/` | `person_id`, `book_id` |
+| Event ↔ Book | `/api/v1/event-book/` | `event_id`, `book_id` |
+| Person ↔ Profession | `/api/v1/person-profession/` | `person_id`, `profession_id` |
+
+---
 
 ### Создание связи — с токеном ✅
 

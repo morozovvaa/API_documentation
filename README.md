@@ -1,42 +1,200 @@
-# Полная документация всех маршрутов и endpoints
+# Полная документация API
 
-##  REST API v1 (JSON)
+## Аутентификация
 
-### Базовая информация
+### Получение токена
+
+**Endpoint:**
+```
+POST http://127.0.0.1:8000/api/v1/auth/login/
+```
+
+**Описание:** Получить токен для аутентификации
+
+**Тело запроса:**
+```json
+{
+    "username": "admin",
+    "password": "ваш_пароль"
+}
+```
+
+**Ответ (200 OK):**
+```json
 {
     "token": "de4be75834b182327dfaa9bc111bdda6381e1026"
 }
+```
+
+**Пример с curl:**
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/auth/login/ \
+  -H "Content-Type: application/json" \
+  -d '{"username": "admin", "password": "ваш_пароль"}'
+```
+
+**Пример с Postman:**
+1. Метод: POST
+2. URL: `http://127.0.0.1:8000/api/v1/auth/login/`
+3. Headers: `Content-Type: application/json`
+4. Body (raw JSON):
+   ```json
+   {
+       "username": "admin",
+       "password": "ваш_пароль"
+   }
+   ```
+
+
+---
+
+### Использование токена
+
+**Все запросы, требующие аутентификации (POST/PUT/PATCH/DELETE), должны включать заголовок:**
+
+```
+Authorization: Token ВАШ_ТОКЕН_ЗДЕСЬ
+```
+
+**Пример с curl:**
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/event/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026" \
+  -d '{"title": "Новое событие", "date": "2024-01-01"}'
+```
+
+**Пример с Postman:**
+1. Headers tab
+2. Key: `Authorization`
+3. Value: `Token de4be75834b182327dfaa9bc111bdda6381e1026`
+
+---
+
+### Методы аутентификации
+
+Система поддерживает **два метода аутентификации**:
+
+#### 1. Token Authentication (для Next.js, мобильных приложений)
+```
+Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026
+```
+
+#### 2. Session Authentication (для Browsable API в браузере)
+- Войдите в `/admin/`
+- Откройте Browsable API в том же браузере
+- Аутентификация произойдет автоматически через session cookie
+
+---
+
+### Права доступа
+
+```
+┌─────────────────┬──────────────────────┬─────────────────────┐
+│ HTTP Метод      │ Требует аутентификации│ Описание           │
+├─────────────────┼──────────────────────┼─────────────────────┤
+│ GET             │ ❌ Нет               │ Чтение данных      │
+│ OPTIONS         │ ❌ Нет               │ Метаданные         │
+│ HEAD            │ ❌ Нет               │ Заголовки          │
+│ POST            │ ✅ Да                │ Создание           │
+│ PUT             │ ✅ Да                │ Полное обновление  │
+│ PATCH           │ ✅ Да                │ Частичное обновление│
+│ DELETE          │ ✅ Да                │ Удаление           │
+└─────────────────┴──────────────────────┴─────────────────────┘
+```
+
+---
+
+### Ошибки аутентификации
+
+**Попытка изменить данные без токена:**
+
+**Запрос:**
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/event/ \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Тест", "date": "2024-01-01"}'
+```
+
+**Ответ (401 Unauthorized):**
+```json
+{
+    "detail": "Учетные данные не были предоставлены."
+}
+```
+
+---
+
+**Неверный токен:**
+
+**Запрос:**
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/event/ \
+  -H "Authorization: Token INVALID_TOKEN" \
+  -d '{"title": "Тест"}'
+```
+
+**Ответ (401 Unauthorized):**
+```json
+{
+    "detail": "Недопустимый токен."
+}
+```
+
+---
+
+**Неверные учетные данные при логине:**
+
+**Запрос:**
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/auth/login/ \
+  -H "Content-Type: application/json" \
+  -d '{"username": "admin", "password": "wrong_password"}'
+```
+
+**Ответ (400 Bad Request):**
+```json
+{
+    "non_field_errors": [
+        "Невозможно войти с предоставленными учетными данными."
+    ]
+}
+```
+
+---
+
+## REST API v1 (JSON)
+
+### Базовая информация
 
 **Базовый URL:**
 ```
-http://127.0.0.1:8000/api/v1/
+Development:  http://127.0.0.1:8000/api/v1/
+Production:   https://dates1.pr-cbs.ru/api/v1/
 ```
 
 **Формат ответа:** JSON
 
 **Пагинация:** 12 элементов на страницу
 
-**Аутентификация:** 
-- GET запросы — без аутентификации
-- POST/PUT/PATCH/DELETE — требуется аутентификация
+**Аутентификация:**
+- GET запросы — **публичные** (без токена)
+- POST/PUT/PATCH/DELETE — **требуется токен**
 
 ---
 
-### 🏠 API Root
-
-**Маршрут:**
-```python
-path('api/v1/', include(router.urls))
-```
+### API Root
 
 **Endpoint:**
 ```
 GET http://127.0.0.1:8000/api/v1/
 ```
 
-**Описание:** Корень API — список всех доступных endpoints
+**Аутентификация:** ❌ Не требуется
 
-**Возвращает:**
+**Описание:** Список всех доступных endpoints
+
+**Ответ:**
 ```json
 {
     "street": "http://127.0.0.1:8000/api/v1/street/",
@@ -56,14 +214,16 @@ GET http://127.0.0.1:8000/api/v1/
 
 ---
 
-### 📅 События (Events)
+## События (Events)
 
-#### 1. Список событий
+### 1. Список событий
 
 **Endpoint:**
 ```
 GET http://127.0.0.1:8000/api/v1/event/
 ```
+
+**Аутентификация:** ❌ Не требуется
 
 **Query параметры:**
 - `?page=N` — номер страницы
@@ -106,20 +266,21 @@ GET /api/v1/event/?street=175&ordering=-date&page=2
             "description_html": "<p>27 мая 1703 года...</p>",
             "image": "events_images/abc123.jpg",
             "street": null
-        },
-        ...
+        }
     ]
 }
 ```
 
 ---
 
-#### 2. Детали события
+### 2. Детали события
 
 **Endpoint:**
 ```
 GET http://127.0.0.1:8000/api/v1/event/{id}/
 ```
+
+**Аутентификация:** ❌ Не требуется
 
 **Примеры:**
 ```
@@ -135,21 +296,27 @@ GET /api/v1/event/401/
     "title": "Открыта мемориальная доска П.С. Попкову",
     "date": "1983-01-01",
     "description_html": "<p>В 1983 году на доме № 29/37...</p>",
-    "image": "events_images/2bf6d0257a45fa73792669f135ee961ac2a1fb60.jpg",
+    "image": "full/2bf6d0257a45fa73792669f135ee961ac2a1fb60.jpg",
     "street": null
 }
 ```
 
 ---
 
-#### 3. Создание события
+### 3. Создание события
 
 **Endpoint:**
 ```
 POST http://127.0.0.1:8000/api/v1/event/
 ```
 
-**⚠️ Требуется аутентификация!**
+**Аутентификация:** ✅ **Требуется токен**
+
+**Headers:**
+```
+Content-Type: application/json
+Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026
+```
 
 **Тело запроса:**
 ```json
@@ -161,28 +328,68 @@ POST http://127.0.0.1:8000/api/v1/event/
 }
 ```
 
-**Ответ (201 Created):**
-```json
-{
-    "id": 502,
+**Пример с curl:**
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/event/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026" \
+  -d '{
     "title": "Новое событие",
     "date": "2024-01-01",
     "description_html": "<p>Описание события</p>",
+    "street": 175
+  }'
+```
+
+**Пример с Next.js:**
+```typescript
+const token = localStorage.getItem('authToken')
+
+const response = await fetch('http://127.0.0.1:8000/api/v1/event/', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Token ${token}`,
+  },
+  body: JSON.stringify({
+    title: 'Новое событие',
+    date: '2024-01-01',
+    description_html: '<p>Описание события</p>',
+    street: 175,
+  }),
+})
+
+const data = await response.json()
+```
+
+**Ответ (201 Created):**
+```json
+{
+    "id": 589,
     "image": null,
+    "title": "Новое событие",
+    "date": "2024-01-01",
+    "description_html": "<p>Описание события</p>",
     "street": 175
 }
 ```
 
 ---
 
-#### 4. Полное обновление события
+### 4. Полное обновление события
 
 **Endpoint:**
 ```
 PUT http://127.0.0.1:8000/api/v1/event/{id}/
 ```
 
-**⚠️ Требуется аутентификация!**
+**Аутентификация:** ✅ **Требуется токен**
+
+**Headers:**
+```
+Content-Type: application/json
+Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026
+```
 
 **Тело запроса (все поля обязательны):**
 ```json
@@ -194,16 +401,46 @@ PUT http://127.0.0.1:8000/api/v1/event/{id}/
 }
 ```
 
+**Пример с curl:**
+```bash
+curl -X PUT http://127.0.0.1:8000/api/v1/event/502/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026" \
+  -d '{
+    "title": "Обновленное название",
+    "date": "1983-01-01",
+    "description_html": "<p>Новое описание</p>",
+    "street": 175
+  }'
+```
+**Ответ (200 OK):**
+```
+{
+    "id": 589,
+    "image": null,
+    "title": "Обновленное название",
+    "date": "1983-01-01",
+    "description_html": "<p>Новое описание</p>",
+    "street": 175
+}
+```
+
 ---
 
-#### 5. Частичное обновление события
+### 5. Частичное обновление события
 
 **Endpoint:**
 ```
 PATCH http://127.0.0.1:8000/api/v1/event/{id}/
 ```
 
-**⚠️ Требуется аутентификация!**
+**Аутентификация:** ✅ **Требуется токен**
+
+**Headers:**
+```
+Content-Type: application/json
+Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026
+```
 
 **Тело запроса (только изменяемые поля):**
 ```json
@@ -212,29 +449,94 @@ PATCH http://127.0.0.1:8000/api/v1/event/{id}/
 }
 ```
 
+**Пример с curl:**
+```bash
+curl -X PATCH http://127.0.0.1:8000/api/v1/event/502/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026" \
+  -d '{"title": "Только новое название"}'
+```
+
+**Ответ (200 OK):**
+```
+{
+    "id": 589,
+    "image": null,
+    "title": "Только новое название",
+    "date": "1983-01-01",
+    "description_html": "<p>Новое описание</p>",
+    "street": 175
+}
+```
+
+**Пример с Next.js:**
+```typescript
+const token = localStorage.getItem('authToken')
+
+const response = await fetch(`http://127.0.0.1:8000/api/v1/event/${id}/`, {
+  method: 'PATCH',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Token ${token}`,
+  },
+  body: JSON.stringify({
+    title: 'Только новое название',
+  }),
+})
+```
+
 ---
 
-#### 6. Удаление события
+### 6. Удаление события
 
 **Endpoint:**
 ```
 DELETE http://127.0.0.1:8000/api/v1/event/{id}/
 ```
 
-**⚠️ Требуется аутентификация!**
+**Аутентификация:** ✅ **Требуется токен**
 
-**Ответ:** 204 No Content
+**Headers:**
+```
+Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026
+```
+
+**Пример с curl:**
+```bash
+curl -X DELETE http://127.0.0.1:8000/api/v1/event/502/ \
+  -H "Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026"
+```
+
+**Пример с Next.js:**
+```typescript
+const token = localStorage.getItem('authToken')
+
+const response = await fetch(`http://127.0.0.1:8000/api/v1/event/${id}/`, {
+  method: 'DELETE',
+  headers: {
+    'Authorization': `Token ${token}`,
+  },
+})
+
+if (response.ok) {
+  console.log('Событие удалено')
+}
+```
+
+**Ответ:** 204 No Content (пустое тело)
 
 ---
 
-### 👥 Персоны (Persons)
+## Персоны (Persons)
 
-#### 1. Список персон
+### 1. Список персон
 
 **Endpoint:**
 ```
 GET http://127.0.0.1:8000/api/v1/person/
 ```
+
+**Аутентификация:** ❌ Не требуется
 
 **Query параметры:**
 - `?page=N` — номер страницы
@@ -256,8 +558,8 @@ GET /api/v1/person/?ordering=-birth_date    → по дате рождения (
 
 **Отличие search от full_text:**
 ```
-?search=писатель       → ищет только в ФИО
-?full_text=писатель    → ищет в ФИО + description_html + article_html
+?search=Абрамов       → ищет только в ФИО
+?full_text=Абрамов    → ищет в ФИО + description_html + article_html
 ```
 
 **Ответ:**
@@ -277,20 +579,21 @@ GET /api/v1/person/?ordering=-birth_date    → по дате рождения (
             "description_html": "Писатель, литературовед...",
             "article_html": "<p>Федор Абрамов родился...</p>",
             "image": "persons_images/516e2ba0174ab51a5e13cc2bb5953d5fab2b1889.jpg"
-        },
-        ...
+        }
     ]
 }
 ```
 
 ---
 
-#### 2. Детали персоны
+### 2. Детали персоны
 
 **Endpoint:**
 ```
 GET http://127.0.0.1:8000/api/v1/person/{id}/
 ```
+
+**Аутентификация:** ❌ Не требуется
 
 **Примеры:**
 ```
@@ -299,430 +602,510 @@ GET /api/v1/person/211/  (Агнивцев Н.Я.)
 GET /api/v1/person/214/  (Алфёров Ж.И.)
 ```
 
-**Ответ:**
-```json
-{
-    "id": 210,
-    "last_name": "Абрамов",
-    "first_name": "Фёдор",
-    "middle_name": "Александрович",
-    "birth_date": "1920-02-29",
-    "death_date": "1983-05-14",
-    "description_html": "Писатель, литературовед, публицист.",
-    "article_html": "<p>Федор Александрович Абрамов родился 29 февраля 1920 года...</p>",
-    "image": "persons_images/516e2ba0174ab51a5e13cc2bb5953d5fab2b1889.jpg"
-}
-```
-
 ---
 
-#### 3-6. CRUD операции для персон
-
-Аналогично событиям:
-- POST `/api/v1/person/` — создать
-- PUT `/api/v1/person/{id}/` — полное обновление
-- PATCH `/api/v1/person/{id}/` — частичное обновление
-- DELETE `/api/v1/person/{id}/` — удалить
-
----
-
-### 🏷️ Справочники
-
-#### Улицы (Streets)
-
-**Endpoints:**
-```
-GET /api/v1/street/              → список (3 улицы)
-GET /api/v1/street/{id}/         → одна улица
-POST /api/v1/street/             → создать (auth)
-PUT /api/v1/street/{id}/         → обновить (auth)
-DELETE /api/v1/street/{id}/      → удалить (auth)
-```
-
-**Пример ответа:**
-```json
-{
-    "count": 3,
-    "results": [
-        {
-            "id": 175,
-            "name": "Каменноостровский проспект"
-        },
-        {
-            "id": 176,
-            "name": "Мичуринская улица"
-        },
-        {
-            "id": 177,
-            "name": "Кронверкский проспект"
-        }
-    ]
-}
-```
-
----
-
-#### Ключевые слова (Keywords)
-
-**Endpoints:**
-```
-GET /api/v1/keyword/             → список (2 тега)
-GET /api/v1/keyword/{id}/        → одно ключевое слово
-POST /api/v1/keyword/            → создать (auth)
-PUT /api/v1/keyword/{id}/        → обновить (auth)
-DELETE /api/v1/keyword/{id}/     → удалить (auth)
-```
-
-**Пример ответа:**
-```json
-{
-    "count": 2,
-    "results": [
-        {
-            "id": 7,
-            "keyword": "Народное ополчение"
-        },
-        {
-            "id": 8,
-            "keyword": "Морской дом"
-        }
-    ]
-}
-```
-
----
-
-#### Профессии (Professions)
-
-**Endpoints:**
-```
-GET /api/v1/profession/          → список (3 профессии)
-GET /api/v1/profession/{id}/     → одна профессия
-POST /api/v1/profession/         → создать (auth)
-PUT /api/v1/profession/{id}/     → обновить (auth)
-DELETE /api/v1/profession/{id}/  → удалить (auth)
-```
-
-**Пример ответа:**
-```json
-{
-    "count": 3,
-    "results": [
-        {
-            "id": 1,
-            "name": "Литературовед"
-        },
-        {
-            "id": 2,
-            "name": "Писатель"
-        },
-        {
-            "id": 6,
-            "name": "Публицист"
-        }
-    ]
-}
-```
-
----
-
-#### Книги (Books)
-
-**Endpoints:**
-```
-GET /api/v1/book/                → список (3 книги)
-GET /api/v1/book/{id}/           → одна книга
-POST /api/v1/book/               → создать (auth)
-PUT /api/v1/book/{id}/           → обновить (auth)
-DELETE /api/v1/book/{id}/        → удалить (auth)
-```
-
-**Пример ответа:**
-```json
-{
-    "count": 3,
-    "results": [
-        {
-            "id": 8,
-            "author": "Абрамов Ф. А.",
-            "title": "Братья и сестры. Роман в четырёх книгах",
-            "url": "https://pr-cbs.ru/catalog/-/books/10397321-brat-ya-i-sestry",
-            "image": "books_images/bookcover.jpeg"
-        },
-        {
-            "id": 9,
-            "author": "Абрамов Ф. А.",
-            "title": "Деревянные кони",
-            "url": "https://pr-cbs.ru/catalog/-/books/10951566-derevyannyye-koni",
-            "image": "books_images/cover.jpg"
-        },
-        {
-            "id": 10,
-            "author": "Агнивцев Н. Я.",
-            "title": "Блистательный Санкт-Петербург",
-            "url": "https://pr-cbs.ru/catalog/-/books/11125865-blistatel-nyy-sankt-peterburg",
-            "image": ""
-        }
-    ]
-}
-```
-
----
-
-### 🔗 Связи (Many-to-Many)
-
-#### Персона ↔ Событие
-
-**Endpoints:**
-```
-GET /api/v1/person-event/
-GET /api/v1/person-event/{id}/
-POST /api/v1/person-event/       (auth)
-DELETE /api/v1/person-event/{id}/ (auth)
-```
-
-**Описание:** Связь персон с событиями
-
-**⚠️ Таблица пустая** (count: 0)
-
-**Пример структуры:**
-```json
-{
-    "id": 1,
-    "person_id": 210,
-    "event_id": 394
-}
-```
-
-**Использование:**
-```json
-POST /api/v1/person-event/
-{
-    "person_id": 210,
-    "event_id": 394
-}
-```
-
----
-
-#### Персона ↔ Ключевое слово
-
-**Endpoints:**
-```
-GET /api/v1/person-keyword/
-GET /api/v1/person-keyword/{id}/
-POST /api/v1/person-keyword/     (auth)
-DELETE /api/v1/person-keyword/{id}/ (auth)
-```
-
-**Описание:** Теги персон
-
-**Пример ответа:**
-```json
-{
-    "count": 2,
-    "results": [
-        {
-            "id": 8,
-            "keyword_id": 7,
-            "person_id": 210
-        },
-        {
-            "id": 9,
-            "keyword_id": 8,
-            "person_id": 210
-        }
-    ]
-}
-```
-
-**Расшифровка:**
-- Персона 210 (Абрамов Ф.А.) имеет теги:
-  - 7 = "Народное ополчение"
-  - 8 = "Морской дом"
-
----
-
-#### Событие ↔ Ключевое слово
-
-**Endpoints:**
-```
-GET /api/v1/event-keyword/
-GET /api/v1/event-keyword/{id}/
-POST /api/v1/event-keyword/      (auth)
-DELETE /api/v1/event-keyword/{id}/ (auth)
-```
-
-**Описание:** Теги событий
-
-**⚠️ Таблица пустая** (count: 0)
-
----
-
-#### Персона ↔ Книга
-
-**Endpoints:**
-```
-GET /api/v1/person-book/
-GET /api/v1/person-book/{id}/
-POST /api/v1/person-book/        (auth)
-DELETE /api/v1/person-book/{id}/ (auth)
-```
-
-**Описание:** Книги о персонах
-
-**Пример ответа:**
-```json
-{
-    "count": 2,
-    "results": [
-        {
-            "id": 7,
-            "book_id": 8,
-            "person_id": 210
-        },
-        {
-            "id": 8,
-            "book_id": 9,
-            "person_id": 210
-        }
-    ]
-}
-```
-
-**Расшифровка:**
-- Персона 210 (Абрамов Ф.А.) связана с книгами:
-  - 8 = "Братья и сестры"
-  - 9 = "Деревянные кони"
-
----
-
-#### Событие ↔ Книга
-
-**Endpoints:**
-```
-GET /api/v1/event-book/
-GET /api/v1/event-book/{id}/
-POST /api/v1/event-book/         (auth)
-DELETE /api/v1/event-book/{id}/  (auth)
-```
-
-**Описание:** Книги, связанные с событиями
-
-**Пример ответа:**
-```json
-{
-    "count": 1,
-    "results": [
-        {
-            "id": 4,
-            "book_id": 9,
-            "event_id": 401
-        }
-    ]
-}
-```
-
-**Расшифровка:**
-- Событие 401 связано с книгой 9 ("Деревянные кони")
-
----
-
-#### Персона ↔ Профессия
-
-**Endpoints:**
-```
-GET /api/v1/person-profession/
-GET /api/v1/person-profession/{id}/
-POST /api/v1/person-profession/  (auth)
-DELETE /api/v1/person-profession/{id}/ (auth)
-```
-
-**Описание:** Профессии персон
-
-**Пример ответа:**
-```json
-{
-    "count": 4,
-    "results": [
-        {
-            "id": 4,
-            "person_id": 210,
-            "profession_id": 1
-        },
-        {
-            "id": 5,
-            "person_id": 210,
-            "profession_id": 2
-        },
-        {
-            "id": 7,
-            "person_id": 219,
-            "profession_id": 1
-        },
-        {
-            "id": 11,
-            "person_id": 210,
-            "profession_id": 6
-        }
-    ]
-}
-```
-
-**Расшифровка:**
-- Персона 210 (Абрамов Ф.А.) имеет профессии:
-  - 1 = Литературовед
-  - 2 = Писатель
-  - 6 = Публицист
-- Персона 219 имеет профессию:
-  - 1 = Литературовед
-
----
-
-## 3️⃣ Административная панель
-
-**Маршрут:**
-```python
-path('admin/', admin.site.urls)
-```
+### 3. Создание персоны
 
 **Endpoint:**
 ```
-GET http://127.0.0.1:8000/admin/
+POST http://127.0.0.1:8000/api/v1/person/
 ```
 
-**Описание:** Django Admin — веб-интерфейс для управления данными
+**Аутентификация:** ✅ **Требуется токен**
 
-**Требуется:** Логин и пароль администратора
+**Headers:**
+```
+Content-Type: application/json
+Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026
+```
 
-**Доступно:**
-- Управление событиями
-- Управление персонами
-- Управление справочниками
-- Управление связями M:N
-- Управление пользователями
+**Тело запроса:**
+```json
+{
+    "last_name": "Иванов",
+    "first_name": "Иван",
+    "middle_name": "Иванович",
+    "birth_date": "1950-01-01",
+    "death_date": null,
+    "description_html": "<p>Краткое описание</p>",
+    "article_html": "<p>Полная биография</p>"
+}
+```
+
+**Пример с curl:**
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/person/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026" \
+  -d '{
+    "last_name": "Иванов",
+    "first_name": "Иван",
+    "middle_name": "Иванович",
+    "birth_date": "1950-01-01",
+    "description_html": "<p>Краткое описание</p>"
+  }'
+```
 
 ---
 
-## 4️⃣ Медиа-файлы
+### 4. Обновление персоны
 
-**Маршрут:**
-```python
-+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+**PUT** — полное обновление (все поля):
+```
+PUT http://127.0.0.1:8000/api/v1/person/{id}/
+Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026
 ```
 
-**Endpoints:**
+**PATCH** — частичное обновление:
 ```
-GET http://127.0.0.1:8000/media/events_images/abc123.jpg
-GET http://127.0.0.1:8000/media/persons_images/xyz456.jpg
-GET http://127.0.0.1:8000/media/books_images/cover.jpg
+PATCH http://127.0.0.1:8000/api/v1/person/{id}/
+Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026
 ```
-
-**Описание:** Загруженные изображения (фотографии событий, персон, обложки книг)
-
-**⚠️ Только для development!** В production медиа раздается через nginx/CDN
 
 ---
+
+### 5. Удаление персоны
+
+**Endpoint:**
+```
+DELETE http://127.0.0.1:8000/api/v1/person/{id}/
+```
+
+**Аутентификация:** ✅ **Требуется токен**
+
+**Headers:**
+```
+Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026
+```
+
+---
+
+## 🏷️ Справочники
+
+Все справочники (улицы, ключевые слова, профессии, книги) работают аналогично:
+
+### Чтение (GET) — без токена ❌
+```
+GET /api/v1/street/
+GET /api/v1/keyword/
+GET /api/v1/profession/
+GET /api/v1/book/
+```
+
+### Создание/Изменение/Удаление — с токеном ✅
+```
+POST   /api/v1/street/     + Token
+PUT    /api/v1/street/{id}/ + Token
+PATCH  /api/v1/street/{id}/ + Token
+DELETE /api/v1/street/{id}/ + Token
+```
+
+---
+
+## 🔗 Связи (Many-to-Many)
+
+Все промежуточные таблицы работают одинаково:
+
+### Чтение связей — без токена ❌
+```
+GET /api/v1/person-event/
+GET /api/v1/person-keyword/
+GET /api/v1/event-keyword/
+GET /api/v1/person-book/
+GET /api/v1/event-book/
+GET /api/v1/person-profession/
+```
+
+### Создание связи — с токеном ✅
+
+**Пример: Связать персону с ключевым словом**
+
+**Endpoint:**
+```
+POST http://127.0.0.1:8000/api/v1/person-keyword/
+```
+
+**Headers:**
+```
+Content-Type: application/json
+Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026
+```
+
+**Тело запроса:**
+```json
+{
+    "person_id": 210,
+    "keyword_id": 7
+}
+```
+
+**Пример с curl:**
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/person-keyword/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026" \
+  -d '{"person_id": 210, "keyword_id": 7}'
+```
+
+---
+
+### Удаление связи — с токеном ✅
+
+**Endpoint:**
+```
+DELETE http://127.0.0.1:8000/api/v1/person-keyword/{id}/
+```
+
+**Headers:**
+```
+Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026
+```
+
+**Пример с curl:**
+```bash
+curl -X DELETE http://127.0.0.1:8000/api/v1/person-keyword/8/ \
+  -H "Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026"
+```
+
+---
+
+## 📊 Сводная таблица методов и аутентификации
+
+| Endpoint | GET | POST | PUT | PATCH | DELETE |
+|----------|-----|------|-----|-------|--------|
+| `/api/v1/event/` | ❌ Публичный | ✅ Токен | ✅ Токен | ✅ Токен | ✅ Токен |
+| `/api/v1/person/` | ❌ Публичный | ✅ Токен | ✅ Токен | ✅ Токен | ✅ Токен |
+| `/api/v1/street/` | ❌ Публичный | ✅ Токен | ✅ Токен | ✅ Токен | ✅ Токен |
+| `/api/v1/keyword/` | ❌ Публичный | ✅ Токен | ✅ Токен | ✅ Токен | ✅ Токен |
+| `/api/v1/profession/` | ❌ Публичный | ✅ Токен | ✅ Токен | ✅ Токен | ✅ Токен |
+| `/api/v1/book/` | ❌ Публичный | ✅ Токен | ✅ Токен | ✅ Токен | ✅ Токен |
+| **Связи M:N** |
+| `/api/v1/person-event/` | ❌ Публичный | ✅ Токен | - | - | ✅ Токен |
+| `/api/v1/person-keyword/` | ❌ Публичный | ✅ Токен | - | - | ✅ Токен |
+| `/api/v1/event-keyword/` | ❌ Публичный | ✅ Токен | - | - | ✅ Токен |
+| `/api/v1/person-book/` | ❌ Публичный | ✅ Токен | - | - | ✅ Токен |
+| `/api/v1/event-book/` | ❌ Публичный | ✅ Токен | - | - | ✅ Токен |
+| `/api/v1/person-profession/` | ❌ Публичный | ✅ Токен | - | - | ✅ Токен |
+
+**Легенда:**
+- ❌ Публичный — не требует токена
+- ✅ Токен — требуется `Authorization: Token ...`
+- `-` — метод не используется для связей
+
+---
+
+## 💻 Примеры кода для Next.js
+
+### Полная библиотека API
+
+```typescript
+// app/lib/api.ts
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+export const API_BASE = `${API_URL}/api/v1`
+
+// ===============================
+// АУТЕНТИФИКАЦИЯ
+// ===============================
+
+export async function login(username: string, password: string) {
+  const response = await fetch(`${API_BASE}/auth/login/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ username, password }),
+  })
+  
+  if (!response.ok) {
+    throw new Error('Login failed')
+  }
+  
+  const data = await response.json()
+  localStorage.setItem('authToken', data.token)
+  return data.token
+}
+
+export function logout() {
+  localStorage.removeItem('authToken')
+}
+
+export function getToken(): string | null {
+  return localStorage.getItem('authToken')
+}
+
+function getAuthHeaders() {
+  const token = getToken()
+  return token ? { 'Authorization': `Token ${token}` } : {}
+}
+
+// ===============================
+// СОБЫТИЯ
+// ===============================
+
+export async function getEvents(params?: {
+  page?: number
+  search?: string
+  date?: string
+  street?: number
+  ordering?: string
+}) {
+  const queryParams = new URLSearchParams()
+  
+  if (params?.page) queryParams.append('page', params.page.toString())
+  if (params?.search) queryParams.append('search', params.search)
+  if (params?.date) queryParams.append('date', params.date)
+  if (params?.street) queryParams.append('street', params.street.toString())
+  if (params?.ordering) queryParams.append('ordering', params.ordering)
+  
+  const url = `${API_BASE}/event/?${queryParams}`
+  const response = await fetch(url)
+  
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`)
+  }
+  
+  return response.json()
+}
+
+export async function getEvent(id: number) {
+  const response = await fetch(`${API_BASE}/event/${id}/`)
+  
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`)
+  }
+  
+  return response.json()
+}
+
+export async function createEvent(eventData: {
+  title: string
+  date: string
+  description_html: string
+  street?: number | null
+}) {
+  const response = await fetch(`${API_BASE}/event/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders(),  // ← Добавляет токен
+    },
+    body: JSON.stringify(eventData),
+  })
+  
+  if (!response.ok) {
+    throw new Error('Failed to create event')
+  }
+  
+  return response.json()
+}
+
+export async function updateEvent(
+  id: number,
+  eventData: Partial<{
+    title: string
+    date: string
+    description_html: string
+    street: number | null
+  }>
+) {
+  const response = await fetch(`${API_BASE}/event/${id}/`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders(),  // ← Добавляет токен
+    },
+    body: JSON.stringify(eventData),
+  })
+  
+  if (!response.ok) {
+    throw new Error('Failed to update event')
+  }
+  
+  return response.json()
+}
+
+export async function deleteEvent(id: number) {
+  const response = await fetch(`${API_BASE}/event/${id}/`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),  // ← Добавляет токен
+  })
+  
+  if (!response.ok) {
+    throw new Error('Failed to delete event')
+  }
+  
+  return response.ok
+}
+
+// ===============================
+// ПЕРСОНЫ
+// ===============================
+
+export async function getPersons(params?: {
+  page?: number
+  search?: string
+  full_text?: string
+  ordering?: string
+}) {
+  const queryParams = new URLSearchParams()
+  
+  if (params?.page) queryParams.append('page', params.page.toString())
+  if (params?.search) queryParams.append('search', params.search)
+  if (params?.full_text) queryParams.append('full_text', params.full_text)
+  if (params?.ordering) queryParams.append('ordering', params.ordering)
+  
+  const url = `${API_BASE}/person/?${queryParams}`
+  const response = await fetch(url)
+  
+  return response.json()
+}
+
+export async function getPerson(id: number) {
+  const response = await fetch(`${API_BASE}/person/${id}/`)
+  return response.json()
+}
+
+export async function createPerson(personData: any) {
+  const response = await fetch(`${API_BASE}/person/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders(),
+    },
+    body: JSON.stringify(personData),
+  })
+  
+  return response.json()
+}
+
+// ===============================
+// СПРАВОЧНИКИ
+// ===============================
+
+export async function getStreets() {
+  const response = await fetch(`${API_BASE}/street/`)
+  return response.json()
+}
+
+export async function getKeywords() {
+  const response = await fetch(`${API_BASE}/keyword/`)
+  return response.json()
+}
+
+export async function getProfessions() {
+  const response = await fetch(`${API_BASE}/profession/`)
+  return response.json()
+}
+
+export async function getBooks() {
+  const response = await fetch(`${API_BASE}/book/`)
+  return response.json()
+}
+
+// ===============================
+// МЕДИА
+// ===============================
+
+export function getImageUrl(imagePath: string | null): string {
+  if (!imagePath) return '/images/placeholder.jpg'
+  return `${API_URL}/media/${imagePath}`
+}
+```
+
+---
+
+### Пример использования в компоненте
+
+```tsx
+// app/admin/events/create/page.tsx
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createEvent } from '@/lib/api'
+
+export default function CreateEventPage() {
+  const [title, setTitle] = useState('')
+  const [date, setDate] = useState('')
+  const [description, setDescription] = useState('')
+  const [error, setError] = useState('')
+  const router = useRouter()
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    
+    try {
+      await createEvent({
+        title,
+        date,
+        description_html: `<p>${description}</p>`,
+      })
+      
+      router.push('/admin/events')
+    } catch (err) {
+      setError('Ошибка создания события. Проверьте токен.')
+    }
+  }
+  
+  return (
+    <form onSubmit={handleSubmit}>
+      <h1>Создать событие</h1>
+      
+      {error && <div className="error">{error}</div>}
+      
+      <input
+        type="text"
+        placeholder="Название"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        required
+      />
+      
+      <input
+        type="date"
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
+        required
+      />
+      
+      <textarea
+        placeholder="Описание"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        required
+      />
+      
+      <button type="submit">Создать</button>
+    </form>
+  )
+}
+```
+
+---
+
+## ✅ Итого
+
+**Для чтения данных (GET):**
+```typescript
+const events = await getEvents()  // Токен НЕ нужен
+```
+
+**Для изменения данных (POST/PUT/PATCH/DELETE):**
+```typescript
+// 1. Сначала залогиниться
+await login('admin', 'password')
+
+// 2. Токен сохранился в localStorage
+// 3. Теперь можно изменять данные
+await createEvent({ title: 'Новое событие', date: '2024-01-01' })
+```
+
+🚀 **Готово! API полностью документировано с аутентификацией.**
+
+
+
 
 ## 📊 Сводная таблица всех маршрутов и endpoints
 

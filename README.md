@@ -10,16 +10,19 @@
 - [Атрибуты для создания каждой связи](#атрибуты-для-создания-каждой-связи)
 
 Справочники:
+
 1. street
 2. profession
 3. book
 4. keyword
 
 Основные:
+
 5. event
 6. person
 
 Связи M:N:
+
 7. person-event
 8. person-keyword
 9. event-keyword

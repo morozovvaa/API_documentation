@@ -272,6 +272,8 @@ GET http://127.0.0.1:8000/api/v1/
 
 ## События (Events)
 
+(EventListSerializer)
+
 ### 1. Список событий
 
 **Endpoint:**
@@ -316,20 +318,51 @@ GET /api/v1/event/?street=175&ordering=-date&page=2
     "previous": null,
     "results": [
         {
-            "id": 400,
-            "title": "Заложена Петропавловская крепость",
-            "date": "1703-05-27",
-            "description_html": "<p>27 мая 1703 года...</p>",
-            "image": "full/3549d4fe868d4f73afe1dd7a620fd8c75741556c.jpg",
-            "street": null
+            "id": 586,
+            "title": "Открыта мемориальная доска А. М. Гранову",
+            "date": "2020-10-29",
+            "day": 29,                   
+            "month": 10,               
+            "image": "http://127.0.0.1:8000/media/full/ca194f5e42cec225d9db25b1959408e27c6c6deb.jpg",
+            "street": null               
+        },
+        {
+            "id": 394,
+            "title": "Открыта мемориальная доска П.С. Попкову",
+            "date": "1983-01-01",
+            "day": 1,                   
+            "month": 1,                   
+            "image": "http://127.0.0.1:8000/media/full/2bf6d0257a45fa73792669f135ee961ac2a1fb60.jpg",
+            "street": {               
+                "id": 175,
+                "name": "Каменноостровский проспект"
+            }
         }
     ]
 }
 ```
 
+
+
+**Структура полей:**
+
+| Поле | Тип | Описание | Пример |
+|------|-----|----------|--------|
+| `id` | integer | ID события | 586 |
+| `title` | string | Название | "Открыта мемориальная доска..." |
+| `date` | string | Дата (ISO) | "2020-10-29" |
+| **`day`** | **integer** | **День месяца** | **29** |
+| **`month`** | **integer** | **Номер месяца** | **10** |
+| `image` | string/null | URL изображения | "http://..." |
+| **`street`** | **object/null** | **Объект улицы** | **{id, name}** |
+
+
+
 ---
 
 ### 2. Детали события
+
+(EventDetailSerializer)
 
 **Endpoint:**
 ```
@@ -351,9 +384,42 @@ GET /api/v1/event/401/
     "id": 394,
     "title": "Открыта мемориальная доска П.С. Попкову",
     "date": "1983-01-01",
+    "day": 1,                          
+    "month": 1,                        
     "description_html": "<p>В 1983 году на доме № 29/37...</p>",
-    "image": "full/2bf6d0257a45fa73792669f135ee961ac2a1fb60.jpg",
-    "street": null
+    "image": "http://127.0.0.1:8000/media/full/2bf6d0257a45fa73792669f135ee961ac2a1fb60.jpg",
+    "street": {                        
+        "id": 175,
+        "name": "Каменноостровский проспект"
+    },
+    "persons": [                    
+        {
+            "id": 210,
+            "last_name": "Попков",
+            "first_name": "Пётр",
+            "middle_name": "Сергеевич",
+            "full_name": "Попков Пётр Сергеевич",
+            "short_name": "Попков П.С.",
+            "birth_date": "1920-02-29",
+            "death_date": "1983-05-14",
+            "image": "http://127.0.0.1:8000/media/full/516e2ba0174ab51a5e13cc2bb5953d5fab2b1889.jpg"
+        }
+    ],
+    "keywords": [                     
+        {
+            "id": 7,
+            "keyword": "мемориальная доска"
+        }
+    ],
+    "books": [                      
+        {
+            "id": 8,
+            "author": "Иванов И.И.",
+            "title": "История Петроградского района",
+            "url": "http://example.com",
+            "image": "http://127.0.0.1:8000/media/books_images/book_8.jpg"
+        }
+    ]
 }
 ```
 
@@ -422,11 +488,19 @@ const data = await response.json()
 ```json
 {
     "id": 589,
-    "image": null,
     "title": "Новое событие",
     "date": "2024-01-01",
+    "day": 1,                           // ← Автоматически вычислено
+    "month": 1,                         // ← Автоматически вычислено
     "description_html": "<p>Описание события</p>",
-    "street": 175
+    "image": null,
+    "street": {                         // ← Автоматически преобразовано в объект
+        "id": 175,
+        "name": "Каменноостровский проспект"
+    },
+    "persons": [],
+    "keywords": [],
+    "books": []
 }
 ```
 
@@ -587,6 +661,8 @@ if (response.ok) {
 
 ### 1. Список персон
 
+(PersonListSerializer)
+
 **Endpoint:**
 ```
 GET http://127.0.0.1:8000/api/v1/person/
@@ -630,11 +706,22 @@ GET /api/v1/person/?ordering=-birth_date    → по дате рождения (
             "last_name": "Абрамов",
             "first_name": "Фёдор",
             "middle_name": "Александрович",
+            "full_name": "Абрамов Фёдор Александрович",   
+            "short_name": "Абрамов Ф.А.",                 
             "birth_date": "1920-02-29",
             "death_date": "1983-05-14",
-            "description_html": "Писатель, литературовед...",
-            "article_html": "<p>Федор Абрамов родился...</p>",
-            "image": "full/516e2ba0174ab51a5e13cc2bb5953d5fab2b1889.jpg"
+            "image": "http://127.0.0.1:8000/media/full/516e2ba0174ab51a5e13cc2bb5953d5fab2b1889.jpg"
+        },
+        {
+            "id": 211,
+            "last_name": "Агнивцев",
+            "first_name": "Николай",
+            "middle_name": "Яковлевич",
+            "full_name": "Агнивцев Николай Яковлевич",   
+            "short_name": "Агнивцев Н.Я.",                  
+            "birth_date": "1888-04-20",
+            "death_date": "1932-10-29",
+            "image": "http://127.0.0.1:8000/media/full/a10104b1688bb2b135b9dc2eba786b9fe8d471ee.jpg"
         }
     ]
 }
@@ -643,6 +730,8 @@ GET /api/v1/person/?ordering=-birth_date    → по дате рождения (
 ---
 
 ### 2. Детали персоны
+
+(PersonDetailSerializer)
 
 **Endpoint:**
 ```
@@ -656,6 +745,74 @@ GET http://127.0.0.1:8000/api/v1/person/{id}/
 GET /api/v1/person/210/  (Абрамов Ф.А.)
 GET /api/v1/person/211/  (Агнивцев Н.Я.)
 GET /api/v1/person/214/  (Алфёров Ж.И.)
+```
+
+Ответ: 200 OK
+
+```
+{
+    "id": 210,
+    "last_name": "Абрамов",
+    "first_name": "Фёдор",
+    "middle_name": "Александрович",
+    "full_name": "Абрамов Фёдор Александрович",    // ← НОВОЕ!
+    "short_name": "Абрамов Ф.А.",                   // ← НОВОЕ!
+    "birth_date": "1920-02-29",
+    "death_date": "1983-05-14",
+    "description_html": "<p>Краткое описание...</p>",
+    "article_html": "<p>Полная биография...</p>",
+    "image": "http://127.0.0.1:8000/media/full/516e2ba0174ab51a5e13cc2bb5953d5fab2b1889.jpg",
+    
+    "professions": [                                // ← НОВОЕ! Вложенные объекты
+        {
+            "id": 2,
+            "name": "Писатель"
+        },
+        {
+            "id": 1,
+            "name": "Литературовед"
+        }
+    ],
+    
+    "streets": [                                    // ← НОВОЕ! Вложенные объекты
+        {
+            "id": 175,
+            "name": "Каменноостровский проспект"
+        }
+    ],
+    
+    "books": [                                      // ← НОВОЕ! Вложенные объекты
+        {
+            "id": 8,
+            "author": "Иванов И.И.",
+            "title": "История Петроградского района",
+            "url": "http://example.com",
+            "image": "http://127.0.0.1:8000/media/books_images/book_8.jpg"
+        }
+    ],
+    
+    "keywords": [                                   // ← НОВОЕ! Вложенные объекты
+        {
+            "id": 7,
+            "keyword": "литература"
+        }
+    ],
+    
+    "events": [                                     // ← НОВОЕ! Связанные события
+        {
+            "id": 394,
+            "title": "Открыта мемориальная доска П.С. Попкову",
+            "date": "1983-01-01",
+            "day": 1,
+            "month": 1,
+            "image": "http://127.0.0.1:8000/media/full/2bf6d0257a45fa73792669f135ee961ac2a1fb60.jpg",
+            "street": {
+                "id": 175,
+                "name": "Каменноостровский проспект"
+            }
+        }
+    ]
+}
 ```
 
 ---
@@ -771,6 +928,215 @@ PUT    /api/v1/street/{id}/ + Token
 PATCH  /api/v1/street/{id}/ + Token
 DELETE /api/v1/street/{id}/ + Token
 ```
+---
+
+
+## Справочники
+
+### 1. Улицы (Streets)
+
+**Endpoint:**
+```
+GET http://127.0.0.1:8000/api/v1/street/
+```
+
+**Ответ: 200 OK**
+```json
+[
+    {
+        "id": 175,
+        "name": "Каменноостровский проспект"
+    },
+    {
+        "id": 176,
+        "name": "Мичуринская улица"
+    },
+    {
+        "id": 177,
+        "name": "Кронверкский проспект"
+    }
+]
+```
+
+---
+
+### 2. Профессии (Professions)
+
+**Endpoint:**
+```
+GET http://127.0.0.1:8000/api/v1/profession/
+```
+
+**Ответ: 200 OK**
+```json
+[
+    {
+        "id": 1,
+        "name": "Литературовед"
+    },
+    {
+        "id": 2,
+        "name": "Писатель"
+    },
+    {
+        "id": 6,
+        "name": "Публицист"
+    }
+]
+```
+
+---
+
+### 3. Ключевые слова (Keywords)
+
+**Endpoint:**
+```
+GET http://127.0.0.1:8000/api/v1/keyword/
+```
+
+**Ответ: 200 OK**
+```json
+[
+    {
+        "id": 7,
+        "keyword": "литература"
+    },
+    {
+        "id": 8,
+        "keyword": "мемориальная доска"
+    }
+]
+```
+
+---
+
+### 4. Книги (Books)
+
+**Endpoint:**
+```
+GET http://127.0.0.1:8000/api/v1/book/
+```
+
+**Ответ: 200 OK**
+```json
+[
+    {
+        "id": 8,
+        "author": "Иванов И.И.",
+        "title": "История Петроградского района",
+        "url": "http://example.com",
+        "image": "http://127.0.0.1:8000/media/books_images/book_8.jpg"
+    }
+]
+```
+
+
+
+
+---
+
+## Связи (Many-to-Many)
+
+### Создание связей
+
+Все промежуточные таблицы работают одинаково.
+
+**Общий паттерн:**
+```
+POST /api/v1/{resource}-{resource}/
+Authorization: Token YOUR_TOKEN
+
+{
+    "{resource1}_id": 123,
+    "{resource2}_id": 456
+}
+```
+
+---
+
+### 1. Person ↔ Event
+
+**POST /api/v1/person-event/**
+
+```json
+{
+    "person": 210,
+    "event": 394
+}
+```
+
+---
+
+### 2. Person ↔ Keyword
+
+**POST /api/v1/person-keyword/**
+
+```json
+{
+    "person": 210,
+    "keyword": 7
+}
+```
+
+---
+
+### 3. Event ↔ Keyword
+
+**POST /api/v1/event-keyword/**
+
+```json
+{
+    "event": 394,
+    "keyword": 7
+}
+```
+
+---
+
+### 4. Person ↔ Book
+
+**POST /api/v1/person-book/**
+
+```json
+{
+    "person": 210,
+    "book": 8
+}
+```
+
+---
+
+### 5. Event ↔ Book
+
+**POST /api/v1/event-book/**
+
+```json
+{
+    "event": 394,
+    "book": 8
+}
+```
+
+---
+
+### 6. Person ↔ Profession
+
+**POST /api/v1/person-profession/**
+
+```json
+{
+    "person": 210,
+    "profession": 1
+}
+```
+
+---
+
+
+
+
+
+
 
 ---
 
@@ -2008,3 +2374,281 @@ GET http://127.0.0.1:8000/person/214  (Алфёров Ж.И.)
 
 
 Эта документация покрывает **100% всех маршрутов и endpoints** вашего проекта! 🚀
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
+
+## 💻 Примеры для Next.js
+
+### Использование новых полей
+
+```typescript
+// app/components/EventCard.tsx
+
+interface Event {
+  id: number
+  title: string
+  date: string
+  day: number        // ← НОВОЕ!
+  month: number      // ← НОВОЕ!
+  image: string | null
+  street: {          // ← НОВОЕ! (вложенный объект)
+    id: number
+    name: string
+  } | null
+}
+
+export function EventCard({ event }: { event: Event }) {
+  return (
+    <div className="event-card">
+      <h2>{event.title}</h2>
+      
+      {/* Использование готовых day/month */}
+      <p>День: {event.day}, Месяц: {event.month}</p>
+      
+      {/* Использование вложенного объекта улицы */}
+      {event.street && (
+        <p>Место: {event.street.name}</p>
+      )}
+      
+      <img src={event.image || '/placeholder.jpg'} alt={event.title} />
+    </div>
+  )
+}
+```
+
+---
+
+### Фильтрация по месяцам
+
+```typescript
+// app/calendar/page.tsx
+
+'use client'
+
+import { useState, useEffect } from 'react'
+import { getEvents } from '@/lib/api'
+
+export default function CalendarPage() {
+  const [events, setEvents] = useState([])
+  const [selectedMonth, setSelectedMonth] = useState(10)
+  
+  useEffect(() => {
+    async function loadEvents() {
+      const data = await getEvents()
+      
+      // Фильтруем по месяцу используя готовое поле month
+      const filtered = data.results.filter(event => event.month === selectedMonth)
+      
+      setEvents(filtered)
+    }
+    
+    loadEvents()
+  }, [selectedMonth])
+  
+  return (
+    <div>
+      <h1>Календарь событий</h1>
+      
+      <select onChange={(e) => setSelectedMonth(Number(e.target.value))}>
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(month => (
+          <option key={month} value={month}>
+            Месяц {month}
+          </option>
+        ))}
+      </select>
+      
+      {events.map(event => (
+        <EventCard key={event.id} event={event} />
+      ))}
+    </div>
+  )
+}
+```
+
+---
+
+### Использование full_name и short_name
+
+```typescript
+// app/components/PersonCard.tsx
+
+interface Person {
+  id: number
+  last_name: string
+  first_name: string
+  middle_name: string
+  full_name: string      // ← НОВОЕ!
+  short_name: string     // ← НОВОЕ!
+  birth_date: string
+  death_date: string | null
+  image: string | null
+}
+
+export function PersonCard({ person }: { person: Person }) {
+  return (
+    <div className="person-card">
+      {/* Используем готовое full_name вместо склеивания */}
+      <h2>{person.full_name}</h2>
+      
+      {/* Используем готовое short_name для компактного отображения */}
+      <p className="subtitle">{person.short_name}</p>
+      
+      <p>{person.birth_date} – {person.death_date || 'настоящее время'}</p>
+      
+      <img src={person.image || '/placeholder.jpg'} alt={person.full_name} />
+    </div>
+  )
+}
+```
+
+---
+
+### Работа с вложенными объектами
+
+```typescript
+// app/person/[id]/page.tsx
+
+interface PersonDetail {
+  id: number
+  full_name: string
+  short_name: string
+  professions: Array<{ id: number; name: string }>     // ← НОВОЕ!
+  streets: Array<{ id: number; name: string }>         // ← НОВОЕ!
+  books: Array<{ id: number; author: string; title: string }>  // ← НОВОЕ!
+  keywords: Array<{ id: number; keyword: string }>     // ← НОВОЕ!
+  events: Array<Event>                                 // ← НОВОЕ!
+}
+
+export default async function PersonPage({ params }: { params: { id: string } }) {
+  const person: PersonDetail = await getPerson(Number(params.id))
+  
+  return (
+    <div>
+      <h1>{person.full_name}</h1>
+      
+      {/* Профессии */}
+      <section>
+        <h2>Профессии</h2>
+        {person.professions.map(prof => (
+          <span key={prof.id} className="badge">{prof.name}</span>
+        ))}
+      </section>
+      
+      {/* Улицы */}
+      <section>
+        <h2>Улицы</h2>
+        {person.streets.map(street => (
+          <div key={street.id}>{street.name}</div>
+        ))}
+      </section>
+      
+      {/* События */}
+      <section>
+        <h2>Связанные события</h2>
+        {person.events.map(event => (
+          <EventCard key={event.id} event={event} />
+        ))}
+      </section>
+      
+      {/* Книги */}
+      <section>
+        <h2>Литература</h2>
+        {person.books.map(book => (
+          <div key={book.id}>
+            {book.author} — {book.title}
+          </div>
+        ))}
+      </section>
+    </div>
+  )
+}
+```
+
+---
+
+## 📊 Сводная таблица изменений
+
+### Events API
+
+| Поле | Было | Стало | Тип |
+|------|------|-------|-----|
+| `street` | ID (number) | Объект {id, name} | object/null |
+| `day` | ❌ Не было | ✅ Добавлено | integer |
+| `month` | ❌ Не было | ✅ Добавлено | integer |
+| `persons` | ❌ Не было (только в Detail) | ✅ Добавлено | array |
+| `keywords` | ❌ Не было (только в Detail) | ✅ Добавлено | array |
+| `books` | ❌ Не было (только в Detail) | ✅ Добавлено | array |
+
+### Persons API
+
+| Поле | Было | Стало | Тип |
+|------|------|-------|-----|
+| `full_name` | ❌ Не было | ✅ Добавлено | string |
+| `short_name` | ❌ Не было | ✅ Добавлено | string |
+| `professions` | ❌ Не было (только в Detail) | ✅ Добавлено | array |
+| `streets` | ❌ Не было (только в Detail) | ✅ Добавлено | array |
+| `books` | ❌ Не было (только в Detail) | ✅ Добавлено | array |
+| `keywords` | ❌ Не было (только в Detail) | ✅ Добавлено | array |
+| `events` | ❌ Не было (только в Detail) | ✅ Добавлено | array |
+
+---
+
+## 🎯 Миграция с старого API
+
+### ❌ Старый код (НЕ РАБОТАЕТ):
+
+```typescript
+// Склеивание ФИО вручную
+const fullName = `${person.last_name} ${person.first_name} ${person.middle_name}`
+
+// Парсинг даты для получения месяца
+const date = new Date(event.date)
+const month = date.getMonth() + 1
+
+// Использование ID улицы
+<p>Street ID: {event.street}</p>
+```
+
+### ✅ Новый код (ПРАВИЛЬНО):
+
+```typescript
+// Готовое ФИО
+<h1>{person.full_name}</h1>
+<p>{person.short_name}</p>
+
+// Готовые день и месяц
+<p>Месяц: {event.month}, День: {event.day}</p>
+
+// Вложенный объект улицы
+{event.street && <p>{event.street.name}</p>}
+```
+
+---
+
+## ✅ Итого
+
+**Версия API:** 2.0  
+**Дата обновления:** 11 февраля 2026  
+**Статус:** ✅ Полностью протестировано  
+
+**Основные улучшения:**
+1. ✅ Добавлены вычисляемые поля `day`, `month` для событий
+2. ✅ Добавлены вычисляемые поля `full_name`, `short_name` для персон
+3. ✅ Вложенные объекты вместо ID для улиц
+4. ✅ Автоматическая загрузка связанных данных в Detail endpoints
+5. ✅ Консистентная структура API между List и Detail
+
+**Готово к продакшену!** 🚀

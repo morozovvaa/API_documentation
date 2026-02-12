@@ -59,7 +59,7 @@ POST http://127.0.0.1:8000/api/v1/auth/login/
 **Ответ (200 OK):**
 ```json
 {
-    "token": "de4be75834b182327dfaa9bc111bdda6381e1026"
+    "token": "ВАШ_ТОКЕН_ЗДЕСЬ"
 }
 ```
 
@@ -97,14 +97,14 @@ Authorization: Token ВАШ_ТОКЕН_ЗДЕСЬ
 ```bash
 curl -X POST http://127.0.0.1:8000/api/v1/event/ \
   -H "Content-Type: application/json" \
-  -H "Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026" \
+  -H "Authorization: Token ВАШ_ТОКЕН_ЗДЕСЬ" \
   -d '{"title": "Новое событие", "date": "2024-01-01"}'
 ```
 
 **Пример с Postman:**
 1. Headers tab
 2. Key: `Authorization`
-3. Value: `Token de4be75834b182327dfaa9bc111bdda6381e1026`
+3. Value: `Token ВАШ_ТОКЕН_ЗДЕСЬ`
 
 ---
 
@@ -114,7 +114,7 @@ curl -X POST http://127.0.0.1:8000/api/v1/event/ \
 
 #### 1. Token Authentication (для Next.js, мобильных приложений)
 ```
-Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026
+Authorization: Token ВАШ_ТОКЕН_ЗДЕСЬ
 ```
 
 #### 2. Session Authentication (для Browsable API в браузере)
@@ -229,19 +229,21 @@ GET http://127.0.0.1:8000/api/v1/
 
 **Ответ:**
 ```json
+
 {
     "street": "http://127.0.0.1:8000/api/v1/street/",
-    "event": "http://127.0.0.1:8000/api/v1/event/",
-    "event-book": "http://127.0.0.1:8000/api/v1/event-book/",
     "profession": "http://127.0.0.1:8000/api/v1/profession/",
     "book": "http://127.0.0.1:8000/api/v1/book/",
-    "person": "http://127.0.0.1:8000/api/v1/person/",
-    "person-event": "http://127.0.0.1:8000/api/v1/person-event/",
     "keyword": "http://127.0.0.1:8000/api/v1/keyword/",
+    "event": "http://127.0.0.1:8000/api/v1/event/",
+    "person": "http://127.0.0.1:8000/api/v1/person/",
+    "event-book": "http://127.0.0.1:8000/api/v1/event-book/",
+    "person-event": "http://127.0.0.1:8000/api/v1/person-event/",
     "person-keyword": "http://127.0.0.1:8000/api/v1/person-keyword/",
     "event-keyword": "http://127.0.0.1:8000/api/v1/event-keyword/",
     "person-book": "http://127.0.0.1:8000/api/v1/person-book/",
-    "person-profession": "http://127.0.0.1:8000/api/v1/person-profession/"
+    "person-profession": "http://127.0.0.1:8000/api/v1/person-profession/",
+    "person-street": "http://127.0.0.1:8000/api/v1/person-street/"
 }
 ```
 
@@ -258,8 +260,6 @@ GET http://127.0.0.1:8000/api/v1/
 GET http://127.0.0.1:8000/api/v1/event/
 ```
 
-**Аутентификация:** ❌ Не требуется
-
 **Query параметры:**
 - `?page=N` — номер страницы
 - `?date=YYYY-MM-DD` — фильтр по дате
@@ -275,8 +275,6 @@ GET /api/v1/event/?date=1983-01-01          → события 1 января 19
 GET /api/v1/event/?street=175               → события на Каменноостровском пр.
 GET /api/v1/event/?search=памятник          → поиск "памятник"
 GET /api/v1/event/?ordering=date            → по дате (старые→новые)
-GET /api/v1/event/?ordering=-date           → по дате (новые→старые)
-GET /api/v1/event/?ordering=title           → по названию (А→Я)
 GET /api/v1/event/?ordering=-title          → по названию (Я→А)
 ```
 
@@ -286,39 +284,6 @@ GET /api/v1/event/?date=1983-01-01&ordering=-title
 GET /api/v1/event/?search=памятник&ordering=date
 GET /api/v1/event/?street=175&ordering=-date&page=2
 ```
-
-**Ответ:**
-```json
-{
-    "count": 195,
-    "next": "http://127.0.0.1:8000/api/v1/event/?page=2",
-    "previous": null,
-    "results": [
-        {
-            "id": 586,
-            "title": "Открыта мемориальная доска А. М. Гранову",
-            "date": "2020-10-29",
-            "day": 29,                   
-            "month": 10,               
-            "image": "http://127.0.0.1:8000/media/full/ca194f5e42cec225d9db25b1959408e27c6c6deb.jpg",
-            "street": null               
-        },
-        {
-            "id": 394,
-            "title": "Открыта мемориальная доска П.С. Попкову",
-            "date": "1983-01-01",
-            "day": 1,                   
-            "month": 1,                   
-            "image": "http://127.0.0.1:8000/media/full/2bf6d0257a45fa73792669f135ee961ac2a1fb60.jpg",
-            "street": {               
-                "id": 175,
-                "name": "Каменноостровский проспект"
-            }
-        }
-    ]
-}
-```
-
 
 
 **Структура полей:**
@@ -333,7 +298,26 @@ GET /api/v1/event/?street=175&ordering=-date&page=2
 | `image` | string/null | URL изображения | "http://..." |
 | **`street`** | **object/null** | **Объект улицы** | **{id, name}** |
 
-
+```
+{
+    "count": 198,
+    "next": "http://127.0.0.1:8000/api/v1/event/?page=2",
+    "previous": null,
+    "results": [
+        {
+            "id": 591,
+            "title": "1",
+            "date": "2026-02-12",
+            "day": 12,
+            "month": 2,
+            "image": null,
+            "street": {
+                "id": 175,
+                "name": "Каменноостровский проспект"
+            }
+        },
+...
+```
 
 ---
 
@@ -346,57 +330,24 @@ GET /api/v1/event/?street=175&ordering=-date&page=2
 GET http://127.0.0.1:8000/api/v1/event/{id}/
 ```
 
-**Аутентификация:** ❌ Не требуется
-
-**Примеры:**
+**Пример:**
 ```
 GET /api/v1/event/394/
-GET /api/v1/event/395/
-GET /api/v1/event/401/
 ```
 
-**Ответ:**
-```json
+```
 {
     "id": 394,
-    "title": "Открыта мемориальная доска П.С. Попкову",
+    "title": "Открыта мемориальная доска государственному деятелю  П.С. Попкову",
     "date": "1983-01-01",
-    "day": 1,                          
-    "month": 1,                        
-    "description_html": "<p>В 1983 году на доме № 29/37...</p>",
+    "day": 1,
+    "month": 1,
+    "description_html": "<p>В 1983 году на доме № 29/37 по Кронверкской улице была установлена мемориальная доска <a href=\"https://dates.pr-cbs.ru/persons/popkov/\">Попкову Пётру Сергеевичу</a>, государственному и партийному деятелю, одному из организаторов и руководителей обороны Ленинграда в годы Великой Отечественной войны.</p>\n<p>Надпись на гранитной мемориальной доске сообщает: «В этом доме с 1939 по 1950 год жил Петр Сергеевич Попков, председатель Исполкома Ленинградского городского Совета депутатов трудящихся в годы Великой Отечественной войны». Автор мемориальной доски -  скульптор Исаева Вера Васильевна.</p>\n<p>Пётр Сергеевич Попков (1903-1950) - советский партийный деятель. С апреля 1942 года — член Военного совета Ленинградской армии ПВО. 13 января 1944 года вместе с Алексеем Бубновым подписал решение Ленгорисполкома о возвращении 20 площадям и улицам Ленинграда их исторических дореволюционных названий (в том числе Дворцовой площади, Невскому проспекту и Садовой улице).</p>\n<p>В 1949 году был арестован; являлся одним из главных фигурантов «Ленинградского дела» — послевоенных чисток в партаппарате. 1 октября 1950 года был расстрелян. В 1954 году военной коллегией Верховного Суда СССР приговор как фальсифицированный был отменён, и П. С. Попков полностью реабилитирован (посмертно).</p>\n<p><a href=\"https://pr-cbs.ru/catalog/-/books/11132313-predannyy-zabveniyu\">Амосова, А. А. Преданный забвению : политическая биография Петра Попкова, 1937-1950 / А. А. Амосова. - Санкт-Петербург : Алетейя, 2016.</a></p>",
     "image": "http://127.0.0.1:8000/media/full/2bf6d0257a45fa73792669f135ee961ac2a1fb60.jpg",
-    "street": {                        
-        "id": 175,
-        "name": "Каменноостровский проспект"
-    },
-    "persons": [                    
-        {
-            "id": 210,
-            "last_name": "Попков",
-            "first_name": "Пётр",
-            "middle_name": "Сергеевич",
-            "full_name": "Попков Пётр Сергеевич",
-            "short_name": "Попков П.С.",
-            "birth_date": "1920-02-29",
-            "death_date": "1983-05-14",
-            "image": "http://127.0.0.1:8000/media/full/516e2ba0174ab51a5e13cc2bb5953d5fab2b1889.jpg"
-        }
-    ],
-    "keywords": [                     
-        {
-            "id": 7,
-            "keyword": "мемориальная доска"
-        }
-    ],
-    "books": [                      
-        {
-            "id": 8,
-            "author": "Иванов И.И.",
-            "title": "История Петроградского района",
-            "url": "http://example.com",
-            "image": "http://127.0.0.1:8000/media/books_images/book_8.jpg"
-        }
-    ]
+    "street": null,
+    "persons": [],
+    "keywords": [],
+    "books": []
 }
 ```
 
@@ -409,12 +360,10 @@ GET /api/v1/event/401/
 POST http://127.0.0.1:8000/api/v1/event/
 ```
 
-**Аутентификация:** ✅ **Требуется токен**
-
 **Headers:**
 ```
 Content-Type: application/json
-Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026
+Authorization: Token ВАШ_ТОКЕН_ЗДЕСЬ
 ```
 
 **Тело запроса:**
@@ -423,7 +372,8 @@ Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026
     "title": "Новое событие",
     "date": "2024-01-01",
     "description_html": "<p>Описание события</p>",
-    "street": 175
+    "image": null,
+    "street_id": 175
 }
 ```
 
@@ -436,30 +386,11 @@ curl -X POST http://127.0.0.1:8000/api/v1/event/ \
     "title": "Новое событие",
     "date": "2024-01-01",
     "description_html": "<p>Описание события</p>",
+    "image": null
     "street": 175
   }'
 ```
 
-**Пример с Next.js:**
-```typescript
-const token = localStorage.getItem('authToken')
-
-const response = await fetch('http://127.0.0.1:8000/api/v1/event/', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Token ${token}`,
-  },
-  body: JSON.stringify({
-    title: 'Новое событие',
-    date: '2024-01-01',
-    description_html: '<p>Описание события</p>',
-    street: 175,
-  }),
-})
-
-const data = await response.json()
-```
 
 **Ответ (201 Created):**
 ```json
@@ -498,37 +429,34 @@ Content-Type: application/json
 Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026
 ```
 
-**Тело запроса (все поля обязательны):**
+**Тело запроса:**
 ```json
 {
-    "title": "Обновленное название",
-    "date": "1983-01-01",
-    "description_html": "<p>Новое описание</p>",
-    "street": 175
+    "title": "Новое событие 1",
+    "date": "2024-01-01",
+    "description_html": "<p>Описание события</p>",
+    "image": null,
+    "street_id": 175
 }
 ```
 
-**Пример с curl:**
-```bash
-curl -X PUT http://127.0.0.1:8000/api/v1/event/502/ \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026" \
-  -d '{
-    "title": "Обновленное название",
-    "date": "1983-01-01",
-    "description_html": "<p>Новое описание</p>",
-    "street": 175
-  }'
-```
 **Ответ (200 OK):**
 ```
 {
-    "id": 589,
+    "id": 593,
+    "title": "Новое событие 1",
+    "date": "2024-01-01",
+    "day": 1,
+    "month": 1,
+    "description_html": "<p>Описание события</p>",
     "image": null,
-    "title": "Обновленное название",
-    "date": "1983-01-01",
-    "description_html": "<p>Новое описание</p>",
-    "street": 175
+    "street": {
+        "id": 175,
+        "name": "Каменноостровский проспект"
+    },
+    "persons": [],
+    "keywords": [],
+    "books": []
 }
 ```
 
@@ -550,46 +478,31 @@ Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026
 ```
 
 **Тело запроса (только изменяемые поля):**
+
 ```json
 {
     "title": "Только новое название"
 }
 ```
 
-**Пример с curl:**
-```bash
-curl -X PATCH http://127.0.0.1:8000/api/v1/event/502/ \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026" \
-  -d '{"title": "Только новое название"}'
-```
-
 **Ответ (200 OK):**
 ```
 {
-    "id": 589,
-    "image": null,
+    "id": 593,
     "title": "Только новое название",
-    "date": "1983-01-01",
-    "description_html": "<p>Новое описание</p>",
-    "street": 175
+    "date": "2024-01-01",
+    "day": 1,
+    "month": 1,
+    "description_html": "<p>Описание события</p>",
+    "image": null,
+    "street": {
+        "id": 175,
+        "name": "Каменноостровский проспект"
+    },
+    "persons": [],
+    "keywords": [],
+    "books": []
 }
-```
-
-**Пример с Next.js:**
-```typescript
-const token = localStorage.getItem('authToken')
-
-const response = await fetch(`http://127.0.0.1:8000/api/v1/event/${id}/`, {
-  method: 'PATCH',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Token ${token}`,
-  },
-  body: JSON.stringify({
-    title: 'Только новое название',
-  }),
-})
 ```
 
 ---
@@ -614,21 +527,6 @@ curl -X DELETE http://127.0.0.1:8000/api/v1/event/502/ \
   -H "Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026"
 ```
 
-**Пример с Next.js:**
-```typescript
-const token = localStorage.getItem('authToken')
-
-const response = await fetch(`http://127.0.0.1:8000/api/v1/event/${id}/`, {
-  method: 'DELETE',
-  headers: {
-    'Authorization': `Token ${token}`,
-  },
-})
-
-if (response.ok) {
-  console.log('Событие удалено')
-}
-```
 
 **Ответ:** 204 No Content (пустое тело)
 
@@ -644,8 +542,6 @@ if (response.ok) {
 ```
 GET http://127.0.0.1:8000/api/v1/person/
 ```
-
-**Аутентификация:** ❌ Не требуется
 
 **Query параметры:**
 - `?page=N` — номер страницы
@@ -732,15 +628,15 @@ GET /api/v1/person/214/  (Алфёров Ж.И.)
     "last_name": "Абрамов",
     "first_name": "Фёдор",
     "middle_name": "Александрович",
-    "full_name": "Абрамов Фёдор Александрович",    // ← НОВОЕ!
-    "short_name": "Абрамов Ф.А.",                   // ← НОВОЕ!
+    "full_name": "Абрамов Фёдор Александрович",    
+    "short_name": "Абрамов Ф.А.",            
     "birth_date": "1920-02-29",
     "death_date": "1983-05-14",
     "description_html": "<p>Краткое описание...</p>",
     "article_html": "<p>Полная биография...</p>",
     "image": "http://127.0.0.1:8000/media/full/516e2ba0174ab51a5e13cc2bb5953d5fab2b1889.jpg",
     
-    "professions": [                                // ← НОВОЕ! Вложенные объекты
+    "professions": [                            
         {
             "id": 2,
             "name": "Писатель"
@@ -751,14 +647,14 @@ GET /api/v1/person/214/  (Алфёров Ж.И.)
         }
     ],
     
-    "streets": [                                    // ← НОВОЕ! Вложенные объекты
+    "streets": [                                
         {
             "id": 175,
             "name": "Каменноостровский проспект"
         }
     ],
     
-    "books": [                                      // ← НОВОЕ! Вложенные объекты
+    "books": [                                      
         {
             "id": 8,
             "author": "Иванов И.И.",
@@ -768,14 +664,14 @@ GET /api/v1/person/214/  (Алфёров Ж.И.)
         }
     ],
     
-    "keywords": [                                   // ← НОВОЕ! Вложенные объекты
+    "keywords": [                                  
         {
             "id": 7,
             "keyword": "литература"
         }
     ],
     
-    "events": [                                     // ← НОВОЕ! Связанные события
+    "events": [                                     
         {
             "id": 394,
             "title": "Открыта мемориальная доска П.С. Попкову",
@@ -823,32 +719,25 @@ Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026
 ```
 
 
-**Пример с curl:**
-```bash
-curl -X POST http://127.0.0.1:8000/api/v1/person/ \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026" \
-  -d '{
-    "last_name": "Иванов",
-    "first_name": "Иван",
-    "middle_name": "Иванович",
-    "birth_date": "1950-01-01",
-    "description_html": "<p>Краткое описание</p>"
-  }'
-```
-
 **Ответ: 201 Created**
 ```
 {
-    "id": 418,
-    "image": null,
+    "id": 420,
     "last_name": "Иванов",
     "first_name": "Иван",
     "middle_name": "Иванович",
+    "full_name": "Иванов Иван Иванович",
+    "short_name": "Иванов И.И.",
     "birth_date": "1950-01-01",
     "death_date": null,
     "description_html": "<p>Краткое описание</p>",
-    "article_html": "<p>Полная биография</p>"
+    "article_html": "<p>Полная биография</p>",
+    "image": null,
+    "professions": [],
+    "streets": [],
+    "books": [],
+    "keywords": [],
+    "events": []
 }
 ```
 
@@ -875,13 +764,6 @@ Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026
 **Endpoint:**
 ```
 DELETE http://127.0.0.1:8000/api/v1/person/{id}/
-```
-
-**Аутентификация:** ✅ **Требуется токен**
-
-**Headers:**
-```
-Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026
 ```
 
 ---
@@ -975,12 +857,12 @@ GET http://127.0.0.1:8000/api/v1/keyword/
 ```json
 [
     {
-        "id": 7,
-        "keyword": "литература"
+        "id": 8,
+        "keyword": "Морской дом"
     },
     {
-        "id": 8,
-        "keyword": "мемориальная доска"
+        "id": 7,
+        "keyword": "Народное ополчение"
     }
 ]
 ```
@@ -999,15 +881,13 @@ GET http://127.0.0.1:8000/api/v1/book/
 [
     {
         "id": 8,
-        "author": "Иванов И.И.",
-        "title": "История Петроградского района",
-        "url": "http://example.com",
-        "image": "http://127.0.0.1:8000/media/books_images/book_8.jpg"
+        "author": "Абрамов Ф. А.",
+        "title": "Братья и сестры. Роман в четырёх книгах",
+        "url": "https://pr-cbs.ru/catalog/-/books/10397321-brat-ya-i-sestry",
+        "image": "books_images/boocover.jpeg"
     }
 ]
 ```
-
-
 
 
 ---
@@ -1107,157 +987,18 @@ Authorization: Token YOUR_TOKEN
 }
 ```
 
----
+### 7. Person ↔ street
 
-
-
-
-
-
-
----
-
-## Связи (Many-to-Many)
-
-Все промежуточные таблицы работают одинаково:
-
-### Чтение связей — без токена ❌
-```
-GET /api/v1/person-event/
-GET /api/v1/person-keyword/
-GET /api/v1/event-keyword/
-GET /api/v1/person-book/
-GET /api/v1/event-book/
-GET /api/v1/person-profession/
-```
-
----
-
-## Атрибуты для создания каждой связи
-
-### 1. Person ↔ Event (Персона связана с событием)
-
-**POST /api/v1/person-event/**
+**POST /api/v1/person-street/**
 
 ```json
 {
-    "person_id": 210,
-    "event_id": 394
+    "person": 210,
+    "street": 1
 }
 ```
 
-**Пример с curl:**
-```bash
-curl -X POST http://127.0.0.1:8000/api/v1/person-event/ \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Token ВАШ_ТОКЕН" \
-  -d '{"person_id": 210, "event_id": 394}'
-```
 
----
-
-### 2. Person ↔ Keyword (Теги персоны)
-
-**POST /api/v1/person-keyword/**
-
-```json
-{
-    "person_id": 210,
-    "keyword_id": 7
-}
-```
-
-**Пример:**
-```bash
-curl -X POST http://127.0.0.1:8000/api/v1/person-keyword/ \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Token ВАШ_ТОКЕН" \
-  -d '{"person_id": 210, "keyword_id": 7}'
-```
-
----
-
-### 3. Event ↔ Keyword (Теги события)
-
-**POST /api/v1/event-keyword/**
-
-```json
-{
-    "event_id": 394,
-    "keyword_id": 7
-}
-```
-
-**Пример:**
-```bash
-curl -X POST http://127.0.0.1:8000/api/v1/event-keyword/ \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Token ВАШ_ТОКЕН" \
-  -d '{"event_id": 394, "keyword_id": 7}'
-```
-
----
-
-### 4. Person ↔ Book (Книги о персоне)
-
-**POST /api/v1/person-book/**
-
-```json
-{
-    "person_id": 210,
-    "book_id": 8
-}
-```
-
-**Пример:**
-```bash
-curl -X POST http://127.0.0.1:8000/api/v1/person-book/ \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Token ВАШ_ТОКЕН" \
-  -d '{"person_id": 210, "book_id": 8}'
-```
-
----
-
-### 5. Event ↔ Book (Книги, связанные с событием)
-
-**POST /api/v1/event-book/**
-
-```json
-{
-    "event_id": 394,
-    "book_id": 8
-}
-```
-
-**Пример:**
-```bash
-curl -X POST http://127.0.0.1:8000/api/v1/event-book/ \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Token ВАШ_ТОКЕН" \
-  -d '{"event_id": 394, "book_id": 8}'
-```
-
----
-
-### 6. Person ↔ Profession (Профессии персоны)
-
-**POST /api/v1/person-profession/**
-
-```json
-{
-    "person_id": 210,
-    "profession_id": 1
-}
-```
-
-**Пример:**
-```bash
-curl -X POST http://127.0.0.1:8000/api/v1/person-profession/ \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Token ВАШ_ТОКЕН" \
-  -d '{"person_id": 210, "profession_id": 1}'
-```
 
 ---
 
@@ -1271,1361 +1012,7 @@ curl -X POST http://127.0.0.1:8000/api/v1/person-profession/ \
 | Person ↔ Book | `/api/v1/person-book/` | `person_id`, `book_id` |
 | Event ↔ Book | `/api/v1/event-book/` | `event_id`, `book_id` |
 | Person ↔ Profession | `/api/v1/person-profession/` | `person_id`, `profession_id` |
+| Person ↔ street | `/api/v1/person-street/` | `person_id`, `street_id` |
 
 ---
 
-### Создание связи — с токеном ✅
-
-**Пример: Связать персону с ключевым словом**
-
-**Endpoint:**
-```
-POST http://127.0.0.1:8000/api/v1/person-keyword/
-```
-
-**Headers:**
-```
-Content-Type: application/json
-Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026
-```
-
-**Тело запроса:**
-```json
-{
-    "person_id": 210,
-    "keyword_id": 7
-}
-```
-
-**Пример с curl:**
-```bash
-curl -X POST http://127.0.0.1:8000/api/v1/person-keyword/ \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026" \
-  -d '{"person_id": 210, "keyword_id": 7}'
-```
-
----
-
-### Удаление связи — с токеном ✅
-
-**Endpoint:**
-```
-DELETE http://127.0.0.1:8000/api/v1/person-keyword/{id}/
-```
-
-**Headers:**
-```
-Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026
-```
-
-**Пример с curl:**
-```bash
-curl -X DELETE http://127.0.0.1:8000/api/v1/person-keyword/8/ \
-  -H "Authorization: Token de4be75834b182327dfaa9bc111bdda6381e1026"
-```
-
----
-
-## 📊 Сводная таблица методов и аутентификации
-
-| Endpoint | GET | POST | PUT | PATCH | DELETE |
-|----------|-----|------|-----|-------|--------|
-| `/api/v1/event/` | ❌ Публичный | ✅ Токен | ✅ Токен | ✅ Токен | ✅ Токен |
-| `/api/v1/person/` | ❌ Публичный | ✅ Токен | ✅ Токен | ✅ Токен | ✅ Токен |
-| `/api/v1/street/` | ❌ Публичный | ✅ Токен | ✅ Токен | ✅ Токен | ✅ Токен |
-| `/api/v1/keyword/` | ❌ Публичный | ✅ Токен | ✅ Токен | ✅ Токен | ✅ Токен |
-| `/api/v1/profession/` | ❌ Публичный | ✅ Токен | ✅ Токен | ✅ Токен | ✅ Токен |
-| `/api/v1/book/` | ❌ Публичный | ✅ Токен | ✅ Токен | ✅ Токен | ✅ Токен |
-| **Связи M:N** |
-| `/api/v1/person-event/` | ❌ Публичный | ✅ Токен | - | - | ✅ Токен |
-| `/api/v1/person-keyword/` | ❌ Публичный | ✅ Токен | - | - | ✅ Токен |
-| `/api/v1/event-keyword/` | ❌ Публичный | ✅ Токен | - | - | ✅ Токен |
-| `/api/v1/person-book/` | ❌ Публичный | ✅ Токен | - | - | ✅ Токен |
-| `/api/v1/event-book/` | ❌ Публичный | ✅ Токен | - | - | ✅ Токен |
-| `/api/v1/person-profession/` | ❌ Публичный | ✅ Токен | - | - | ✅ Токен |
-
-**Легенда:**
-- ❌ Публичный — не требует токена
-- ✅ Токен — требуется `Authorization: Token ...`
-- `-` — метод не используется для связей
-
----
-
-## 💻 Примеры кода для Next.js
-
-### Полная библиотека API
-
-```typescript
-// app/lib/api.ts
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-export const API_BASE = `${API_URL}/api/v1`
-
-// ===============================
-// АУТЕНТИФИКАЦИЯ
-// ===============================
-
-export async function login(username: string, password: string) {
-  const response = await fetch(`${API_BASE}/auth/login/`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ username, password }),
-  })
-  
-  if (!response.ok) {
-    throw new Error('Login failed')
-  }
-  
-  const data = await response.json()
-  localStorage.setItem('authToken', data.token)
-  return data.token
-}
-
-export function logout() {
-  localStorage.removeItem('authToken')
-}
-
-export function getToken(): string | null {
-  return localStorage.getItem('authToken')
-}
-
-function getAuthHeaders() {
-  const token = getToken()
-  return token ? { 'Authorization': `Token ${token}` } : {}
-}
-
-// ===============================
-// СОБЫТИЯ
-// ===============================
-
-export async function getEvents(params?: {
-  page?: number
-  search?: string
-  date?: string
-  street?: number
-  ordering?: string
-}) {
-  const queryParams = new URLSearchParams()
-  
-  if (params?.page) queryParams.append('page', params.page.toString())
-  if (params?.search) queryParams.append('search', params.search)
-  if (params?.date) queryParams.append('date', params.date)
-  if (params?.street) queryParams.append('street', params.street.toString())
-  if (params?.ordering) queryParams.append('ordering', params.ordering)
-  
-  const url = `${API_BASE}/event/?${queryParams}`
-  const response = await fetch(url)
-  
-  if (!response.ok) {
-    throw new Error(`API error: ${response.status}`)
-  }
-  
-  return response.json()
-}
-
-export async function getEvent(id: number) {
-  const response = await fetch(`${API_BASE}/event/${id}/`)
-  
-  if (!response.ok) {
-    throw new Error(`API error: ${response.status}`)
-  }
-  
-  return response.json()
-}
-
-export async function createEvent(eventData: {
-  title: string
-  date: string
-  description_html: string
-  street?: number | null
-}) {
-  const response = await fetch(`${API_BASE}/event/`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...getAuthHeaders(),  // ← Добавляет токен
-    },
-    body: JSON.stringify(eventData),
-  })
-  
-  if (!response.ok) {
-    throw new Error('Failed to create event')
-  }
-  
-  return response.json()
-}
-
-export async function updateEvent(
-  id: number,
-  eventData: Partial<{
-    title: string
-    date: string
-    description_html: string
-    street: number | null
-  }>
-) {
-  const response = await fetch(`${API_BASE}/event/${id}/`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      ...getAuthHeaders(),  // ← Добавляет токен
-    },
-    body: JSON.stringify(eventData),
-  })
-  
-  if (!response.ok) {
-    throw new Error('Failed to update event')
-  }
-  
-  return response.json()
-}
-
-export async function deleteEvent(id: number) {
-  const response = await fetch(`${API_BASE}/event/${id}/`, {
-    method: 'DELETE',
-    headers: getAuthHeaders(),  // ← Добавляет токен
-  })
-  
-  if (!response.ok) {
-    throw new Error('Failed to delete event')
-  }
-  
-  return response.ok
-}
-
-// ===============================
-// ПЕРСОНЫ
-// ===============================
-
-export async function getPersons(params?: {
-  page?: number
-  search?: string
-  full_text?: string
-  ordering?: string
-}) {
-  const queryParams = new URLSearchParams()
-  
-  if (params?.page) queryParams.append('page', params.page.toString())
-  if (params?.search) queryParams.append('search', params.search)
-  if (params?.full_text) queryParams.append('full_text', params.full_text)
-  if (params?.ordering) queryParams.append('ordering', params.ordering)
-  
-  const url = `${API_BASE}/person/?${queryParams}`
-  const response = await fetch(url)
-  
-  return response.json()
-}
-
-export async function getPerson(id: number) {
-  const response = await fetch(`${API_BASE}/person/${id}/`)
-  return response.json()
-}
-
-export async function createPerson(personData: any) {
-  const response = await fetch(`${API_BASE}/person/`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...getAuthHeaders(),
-    },
-    body: JSON.stringify(personData),
-  })
-  
-  return response.json()
-}
-
-// ===============================
-// СПРАВОЧНИКИ
-// ===============================
-
-export async function getStreets() {
-  const response = await fetch(`${API_BASE}/street/`)
-  return response.json()
-}
-
-export async function getKeywords() {
-  const response = await fetch(`${API_BASE}/keyword/`)
-  return response.json()
-}
-
-export async function getProfessions() {
-  const response = await fetch(`${API_BASE}/profession/`)
-  return response.json()
-}
-
-export async function getBooks() {
-  const response = await fetch(`${API_BASE}/book/`)
-  return response.json()
-}
-
-// ===============================
-// МЕДИА
-// ===============================
-
-export function getImageUrl(imagePath: string | null): string {
-  if (!imagePath) return '/images/placeholder.jpg'
-  return `${API_URL}/media/${imagePath}`
-}
-```
-
----
-
-### Пример использования в компоненте
-
-```tsx
-// app/admin/events/create/page.tsx
-'use client'
-
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { createEvent } from '@/lib/api'
-
-export default function CreateEventPage() {
-  const [title, setTitle] = useState('')
-  const [date, setDate] = useState('')
-  const [description, setDescription] = useState('')
-  const [error, setError] = useState('')
-  const router = useRouter()
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    
-    try {
-      await createEvent({
-        title,
-        date,
-        description_html: `<p>${description}</p>`,
-      })
-      
-      router.push('/admin/events')
-    } catch (err) {
-      setError('Ошибка создания события. Проверьте токен.')
-    }
-  }
-  
-  return (
-    <form onSubmit={handleSubmit}>
-      <h1>Создать событие</h1>
-      
-      {error && <div className="error">{error}</div>}
-      
-      <input
-        type="text"
-        placeholder="Название"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        required
-      />
-      
-      <input
-        type="date"
-        value={date}
-        onChange={(e) => setDate(e.target.value)}
-        required
-      />
-      
-      <textarea
-        placeholder="Описание"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        required
-      />
-      
-      <button type="submit">Создать</button>
-    </form>
-  )
-}
-```
-
----
-
-## ✅ Итого
-
-**Для чтения данных (GET):**
-```typescript
-const events = await getEvents()  // Токен НЕ нужен
-```
-
-**Для изменения данных (POST/PUT/PATCH/DELETE):**
-```typescript
-// 1. Сначала залогиниться
-await login('admin', 'password')
-
-// 2. Токен сохранился в localStorage
-// 3. Теперь можно изменять данные
-await createEvent({ title: 'Новое событие', date: '2024-01-01' })
-```
-
-🚀 **Готово! API полностью документировано с аутентификацией.**
-
-
-
-
-## 📊 Сводная таблица всех маршрутов и endpoints
-
-### HTML интерфейс
-
-| Маршрут | Endpoint | Метод | Описание |
-|---------|----------|-------|----------|
-| `''` | `/` | GET | Главная (события на сегодня) |
-| `'events/'` | `/events/` | GET | Список событий |
-| `'events/date=<date>'` | `/events/date=2024-01-01` | GET | События на дату |
-| `'events/title=<title>'` | `/events/title=памятник` | GET | Поиск по названию |
-| `'events/keyword=<id>'` | `/events/keyword=7` | GET | Фильтр по тегу |
-| `'events/street=<id>'` | `/events/street=175` | GET | Фильтр по улице |
-| `'event/<int:id>'` | `/event/394` | GET | Детали события |
-| `'persons/'` | `/persons/` | GET | Список персон |
-| `'persons/letter=<letter>'` | `/persons/letter=А` | GET | Персоны на букву |
-| `'persons/name=<name>'` | `/persons/name=Абрамов` | GET | Поиск по ФИО |
-| `'persons/profession=<id>'` | `/persons/profession=1` | GET | Фильтр по профессии |
-| `'person/<int:id>'` | `/person/210` | GET | Детали персоны |
-
-**Итого: 26 HTML маршрутов → бесконечное количество endpoints**
-
----
-
-### REST API v1
-
-| Ресурс | Маршрут роутера | Endpoints | Методы |
-|--------|-----------------|-----------|--------|
-| **События** | `r'event'` | `/api/v1/event/`<br>`/api/v1/event/{id}/` | GET, POST<br>GET, PUT, PATCH, DELETE |
-| **Персоны** | `r'person'` | `/api/v1/person/`<br>`/api/v1/person/{id}/` | GET, POST<br>GET, PUT, PATCH, DELETE |
-| **Улицы** | `r'street'` | `/api/v1/street/`<br>`/api/v1/street/{id}/` | GET, POST<br>GET, PUT, PATCH, DELETE |
-| **Теги** | `r'keyword'` | `/api/v1/keyword/`<br>`/api/v1/keyword/{id}/` | GET, POST<br>GET, PUT, PATCH, DELETE |
-| **Профессии** | `r'profession'` | `/api/v1/profession/`<br>`/api/v1/profession/{id}/` | GET, POST<br>GET, PUT, PATCH, DELETE |
-| **Книги** | `r'book'` | `/api/v1/book/`<br>`/api/v1/book/{id}/` | GET, POST<br>GET, PUT, PATCH, DELETE |
-| **Связи** | `r'person-event'` | `/api/v1/person-event/`<br>`/api/v1/person-event/{id}/` | GET, POST<br>GET, DELETE |
-| | `r'person-keyword'` | `/api/v1/person-keyword/`<br>`/api/v1/person-keyword/{id}/` | GET, POST<br>GET, DELETE |
-| | `r'event-keyword'` | `/api/v1/event-keyword/`<br>`/api/v1/event-keyword/{id}/` | GET, POST<br>GET, DELETE |
-| | `r'person-book'` | `/api/v1/person-book/`<br>`/api/v1/person-book/{id}/` | GET, POST<br>GET, DELETE |
-| | `r'event-book'` | `/api/v1/event-book/`<br>`/api/v1/event-book/{id}/` | GET, POST<br>GET, DELETE |
-| | `r'person-profession'` | `/api/v1/person-profession/`<br>`/api/v1/person-profession/{id}/` | GET, POST<br>GET, DELETE |
-
-**Итого: 12 ViewSets → 24 API endpoints**
-
----
-
-## 📖 Глоссарий терминов
-
-### Маршрут (Route)
-**Определение в коде** паттерна URL, который Django использует для сопоставления запросов
-
-**Пример:**
-```python
-path('event/<int:id>', event, name='event_view')
-```
-
----
-
-### Endpoint (Конечная точка)
-**Конкретный URL**, по которому доступен ресурс
-
-**Пример:**
-```
-http://127.0.0.1:8000/event/394
-```
-
----
-
-### Query параметры
-Параметры после знака `?` в URL
-
-**Пример:**
-```
-/api/v1/event/?page=2&ordering=-date
-              ↑
-              query параметры
-```
-
----
-
-### Path параметры
-Параметры, встроенные в путь URL
-
-**Пример:**
-```
-/event/394
-       ↑
-       path параметр (id=394)
-```
-
----
-
-### ViewSet
-Класс Django REST Framework, автоматически создающий CRUD endpoints
-
----
-
-### CRUD
-Create, Read, Update, Delete — базовые операции с данными
-
----
-
-## ✅ Итоговая статистика
-
-```
-┌───────────────────────┬──────────┐
-│ Тип                   │ Количество│
-├───────────────────────┼──────────┤
-│ HTML маршрутов        │ 26       │
-│ REST API ViewSets     │ 12       │
-│ REST API endpoints    │ 24       │
-│ Всего маршрутов       │ 38       │
-├───────────────────────┼──────────┤
-│ События в БД          │ 195      │
-│ Персоны в БД          │ 208      │
-│ Улицы                 │ 3        │
-│ Профессии             │ 3        │
-│ Книги                 │ 3        │
-│ Ключевые слова        │ 2        │
-└───────────────────────┴──────────┘
-```
-
----
-
-
-
-
-
-
-
-
-
-
-
-
-## 1️⃣ HTML ИНТЕРФЕЙС (Django Templates)
-
-### 🏠 Главная страница
-
-#### Маршрут:
-```python
-path('', events, name='events_view')
-```
-
-#### Endpoint:
-```
-GET http://127.0.0.1:8000/
-```
-
-#### Описание:
-Главная страница сайта — календарь событий на сегодняшний день
-
-#### Параметры:
-- Нет
-
-#### Возвращает:
-HTML страница с календарем и списком событий на сегодня
-
-#### Пример использования:
-```
-Браузер: http://127.0.0.1:8000/
-→ Показывает события, произошедшие 26 января
-```
-
----
-
-### 📅 События
-
-#### 1. Список всех событий
-
-**Маршрут:**
-```python
-path('events/', events, name='events_view')
-```
-
-**Endpoint:**
-```
-GET http://127.0.0.1:8000/events/
-```
-
-**Описание:** Список всех событий с календарем
-
-**Параметры URL:** Нет
-
-**Query параметры:**
-- `?page=2` — номер страницы (пагинация)
-
-**Возвращает:** HTML страница со списком событий (12 на странице)
-
-**Пример:**
-```
-http://127.0.0.1:8000/events/
-http://127.0.0.1:8000/events/?page=2
-```
-
----
-
-#### 2. События на конкретную дату
-
-**Маршрут:**
-```python
-path('events/date=<date>', events, name='events_view')
-```
-
-**Endpoints:**
-```
-GET http://127.0.0.1:8000/events/date=2024-01-01
-GET http://127.0.0.1:8000/events/date=1983-01-01
-GET http://127.0.0.1:8000/events/date=1705-05-27
-```
-
-**Описание:** События, произошедшие в указанную дату
-
-**Параметры:**
-- `<date>` — дата в формате `YYYY-MM-DD`
-
-**Возвращает:** HTML страница с событиями на указанную дату
-
-**Особенность:** Если нет событий на конкретный день, показывает все события за месяц
-
----
-
-#### 3. Поиск событий по названию
-
-**Маршрут:**
-```python
-path('events/title=<title>', events, name='events_view')
-```
-
-**Endpoints:**
-```
-GET http://127.0.0.1:8000/events/title=памятник
-GET http://127.0.0.1:8000/events/title=библиотека
-GET http://127.0.0.1:8000/events/title=Попков
-```
-
-**Описание:** Поиск событий по тексту в названии
-
-**Параметры:**
-- `<title>` — текст для поиска (регистронезависимый)
-
-**Возвращает:** HTML страница с результатами поиска
-
----
-
-#### 4. POST обработка формы поиска по дате
-
-**Маршрут:**
-```python
-path('events/get_date', get_date_events, name='get_date_events')
-```
-
-**Endpoint:**
-```
-POST http://127.0.0.1:8000/events/get_date
-```
-
-**Описание:** Обработка формы поиска по дате
-
-**Тело запроса:**
-```
-search_date=2024-01-01
-```
-
-**Возвращает:** Редирект на `/events/date=2024-01-01`
-
----
-
-#### 5. POST обработка формы поиска по названию
-
-**Маршрут:**
-```python
-path('events/get_title', get_title_events, name='get_title_events')
-```
-
-**Endpoint:**
-```
-POST http://127.0.0.1:8000/events/get_title
-```
-
-**Описание:** Обработка формы поиска по названию
-
-**Тело запроса:**
-```
-search_title=памятник
-```
-
-**Возвращает:** Редирект на `/events/title=памятник`
-
----
-
-#### 6. Список ключевых слов событий
-
-**Маршрут:**
-```python
-path('events/keywords', events_keywords, name='events_keywords_view')
-```
-
-**Endpoint:**
-```
-GET http://127.0.0.1:8000/events/keywords
-```
-
-**Описание:** Алфавитный указатель ключевых слов, связанных с событиями
-
-**Возвращает:** HTML страница с алфавитным списком тегов
-
----
-
-#### 7. Фильтр событий по ключевому слову
-
-**Маршрут:**
-```python
-path('events/keyword=<int:keyword_id>', events, name='events_view')
-```
-
-**Endpoints:**
-```
-GET http://127.0.0.1:8000/events/keyword=7
-GET http://127.0.0.1:8000/events/keyword=8
-```
-
-**Описание:** События, отмеченные конкретным ключевым словом
-
-**Параметры:**
-- `<keyword_id>` — ID ключевого слова
-
-**Возвращает:** HTML страница с отфильтрованными событиями
-
----
-
-#### 8. Список улиц событий
-
-**Маршрут:**
-```python
-path('events/streets', events_streets, name='events_streets_view')
-```
-
-**Endpoint:**
-```
-GET http://127.0.0.1:8000/events/streets
-```
-
-**Описание:** Алфавитный указатель улиц, на которых происходили события
-
-**Возвращает:** HTML страница со списком улиц
-
----
-
-#### 9. Фильтр событий по улице
-
-**Маршрут:**
-```python
-path('events/street=<int:street_id>', events, name='events_view')
-```
-
-**Endpoints:**
-```
-GET http://127.0.0.1:8000/events/street=175
-GET http://127.0.0.1:8000/events/street=176
-GET http://127.0.0.1:8000/events/street=177
-```
-
-**Описание:** События, произошедшие на конкретной улице
-
-**Параметры:**
-- `<street_id>` — ID улицы
-  - 175 = Каменноостровский проспект
-  - 176 = Мичуринская улица
-  - 177 = Кронверкский проспект
-
-**Возвращает:** HTML страница с событиями на улице
-
----
-
-#### 10. Навигация по месяцам календаря
-
-**Маршруты:**
-```python
-path('events/previous_month_from_<date>', get_previous_month, name='previous_month_calendar_view')
-path('events/next_month_from_<date>', get_next_month, name='next_month_calendar_view')
-```
-
-**Endpoints:**
-```
-GET http://127.0.0.1:8000/events/previous_month_from_2024-01-15
-GET http://127.0.0.1:8000/events/next_month_from_2024-01-15
-```
-
-**Описание:** Навигация по календарю (переход на предыдущий/следующий месяц)
-
-**Параметры:**
-- `<date>` — текущая дата
-
-**Возвращает:** Редирект на первое число предыдущего/следующего месяца
-
-**Пример:**
-```
-previous_month_from_2024-01-15 → редирект на /events/date=2023-12-01
-next_month_from_2024-01-15     → редирект на /events/date=2024-02-01
-```
-
----
-
-#### 11. Детальная страница события
-
-**Маршрут:**
-```python
-path('event/<int:id>', event, name='event_view')
-```
-
-**Endpoints:**
-```
-GET http://127.0.0.1:8000/event/394
-GET http://127.0.0.1:8000/event/395
-GET http://127.0.0.1:8000/event/396
-GET http://127.0.0.1:8000/event/401
-```
-
-**Описание:** Полная информация о событии
-
-**Параметры:**
-- `<id>` — ID события (194 события доступны)
-
-**Возвращает:** HTML страница с:
-- Название события
-- Дата
-- Описание (HTML)
-- Изображение
-- Связанные книги
-- Связанные ключевые слова
-
-**Пример данных:**
-```
-ID: 394
-Название: "Открыта мемориальная доска П.С. Попкову"
-Дата: 1983-01-01
-```
-
----
-
-### 👥 Персоны
-
-#### 1. Список всех персон
-
-**Маршрут:**
-```python
-path('persons/', persons, name='persons_view')
-```
-
-**Endpoint:**
-```
-GET http://127.0.0.1:8000/persons/
-```
-
-**Описание:** Список всех персон
-
-**Query параметры:**
-- `?page=2` — номер страницы
-
-**Возвращает:** HTML страница со списком персон (12 на странице)
-
----
-
-#### 2. Фильтр персон по первой букве фамилии
-
-**Маршрут:**
-```python
-path('persons/letter=<str:letter>', persons, name='persons_view')
-```
-
-**Endpoints:**
-```
-GET http://127.0.0.1:8000/persons/letter=А
-GET http://127.0.0.1:8000/persons/letter=Б
-GET http://127.0.0.1:8000/persons/letter=П
-```
-
-**Описание:** Персоны, фамилия которых начинается на указанную букву
-
-**Параметры:**
-- `<letter>` — буква русского алфавита (А-Я)
-
-**Возвращает:** HTML страница с отфильтрованными персонами
-
-**Пример:**
-```
-letter=А → Абрамов, Агнивцев, Алексеева, Алфёров
-```
-
----
-
-#### 3. Поиск персон по ФИО
-
-**Маршрут:**
-```python
-path('persons/name=<name>', persons, name='persons_view')
-```
-
-**Endpoints:**
-```
-GET http://127.0.0.1:8000/persons/name=Абрамов
-GET http://127.0.0.1:8000/persons/name=Фёдор
-GET http://127.0.0.1:8000/persons/name=Абрамов Фёдор
-```
-
-**Описание:** Поиск по имени, фамилии или отчеству
-
-**Параметры:**
-- `<name>` — текст для поиска (может быть несколько слов)
-
-**Логика поиска:**
-- Разбивает запрос на слова
-- Ищет каждое слово в ФИО (фамилия, имя, отчество)
-- Все слова должны присутствовать (логическое AND)
-
-**Пример:**
-```
-name=Абрамов Фёдор
-→ найдет: "Абрамов Фёдор Александрович"
-→ не найдет: "Абрамов Иван Иванович" (нет слова "Фёдор")
-```
-
----
-
-#### 4. POST обработка формы поиска по имени
-
-**Маршрут:**
-```python
-path('persons/get_name', get_name_persons, name='get_name_persons')
-```
-
-**Endpoint:**
-```
-POST http://127.0.0.1:8000/persons/get_name
-```
-
-**Тело запроса:**
-```
-search_name=Абрамов
-```
-
-**Возвращает:** Редирект на `/persons/name=Абрамов`
-
----
-
-#### 5. Список профессий
-
-**Маршрут:**
-```python
-path('persons/professions', persons_professions, name='persons_professions_view')
-```
-
-**Endpoint:**
-```
-GET http://127.0.0.1:8000/persons/professions
-```
-
-**Описание:** Алфавитный указатель профессий
-
-**Возвращает:** HTML страница со списком профессий (Литературовед, Писатель, Публицист)
-
----
-
-#### 6. Фильтр персон по профессии
-
-**Маршрут:**
-```python
-path('persons/profession=<int:profession_id>', persons, name='persons_view')
-```
-
-**Endpoints:**
-```
-GET http://127.0.0.1:8000/persons/profession=1  (Литературовед)
-GET http://127.0.0.1:8000/persons/profession=2  (Писатель)
-GET http://127.0.0.1:8000/persons/profession=6  (Публицист)
-```
-
-**Описание:** Персоны с указанной профессией
-
-**Параметры:**
-- `<profession_id>` — ID профессии
-
----
-
-#### 7. Список ключевых слов персон
-
-**Маршрут:**
-```python
-path('persons/keywords', persons_keywords, name='persons_keywords_view')
-```
-
-**Endpoint:**
-```
-GET http://127.0.0.1:8000/persons/keywords
-```
-
-**Описание:** Алфавитный указатель тегов персон
-
----
-
-#### 8. Фильтр персон по ключевому слову
-
-**Маршрут:**
-```python
-path('persons/keyword=<int:keyword_id>', persons, name='persons_view')
-```
-
-**Endpoints:**
-```
-GET http://127.0.0.1:8000/persons/keyword=7
-GET http://127.0.0.1:8000/persons/keyword=8
-```
-
-**Описание:** Персоны с указанным тегом
-
----
-
-#### 9. Список улиц персон
-
-**Маршрут:**
-```python
-path('persons/streets', persons_streets, name='persons_streets_view')
-```
-
-**Endpoint:**
-```
-GET http://127.0.0.1:8000/persons/streets
-```
-
-**Описание:** Алфавитный указатель улиц, связанных с персонами
-
----
-
-#### 10. Фильтр персон по улице
-
-**Маршрут:**
-```python
-path('persons/street=<int:street_id>', persons, name='persons_view')
-```
-
-**Endpoints:**
-```
-GET http://127.0.0.1:8000/persons/street=175
-GET http://127.0.0.1:8000/persons/street=176
-GET http://127.0.0.1:8000/persons/street=177
-```
-
-**Описание:** Персоны, связанные с указанной улицей (жили, работали, учились)
-
----
-
-#### 11. Детальная страница персоны
-
-**Маршрут:**
-```python
-path('person/<int:id>', person, name='person_view')
-```
-
-**Endpoints:**
-```
-GET http://127.0.0.1:8000/person/210  (Абрамов Ф.А.)
-GET http://127.0.0.1:8000/person/211  (Агнивцев Н.Я.)
-GET http://127.0.0.1:8000/person/214  (Алфёров Ж.И.)
-```
-
-**Описание:** Полная биография персоны
-
-**Параметры:**
-- `<id>` — ID персоны (208 персон доступно)
-
-**Возвращает:** HTML страница с:
-- ФИО
-- Даты жизни
-- Краткое описание
-- Развернутая биография (статья)
-- Фотография
-- Связанные книги
-- Профессии
-- Ключевые слова
-- Улицы
-
----
-
-
-
-
-Эта документация покрывает **100% всех маршрутов и endpoints** вашего проекта! 🚀
-
-
-
-
-
-
-
-
-
-
-
-
-
-
----
-
-## 💻 Примеры для Next.js
-
-### Использование новых полей
-
-```typescript
-// app/components/EventCard.tsx
-
-interface Event {
-  id: number
-  title: string
-  date: string
-  day: number        // ← НОВОЕ!
-  month: number      // ← НОВОЕ!
-  image: string | null
-  street: {          // ← НОВОЕ! (вложенный объект)
-    id: number
-    name: string
-  } | null
-}
-
-export function EventCard({ event }: { event: Event }) {
-  return (
-    <div className="event-card">
-      <h2>{event.title}</h2>
-      
-      {/* Использование готовых day/month */}
-      <p>День: {event.day}, Месяц: {event.month}</p>
-      
-      {/* Использование вложенного объекта улицы */}
-      {event.street && (
-        <p>Место: {event.street.name}</p>
-      )}
-      
-      <img src={event.image || '/placeholder.jpg'} alt={event.title} />
-    </div>
-  )
-}
-```
-
----
-
-### Фильтрация по месяцам
-
-```typescript
-// app/calendar/page.tsx
-
-'use client'
-
-import { useState, useEffect } from 'react'
-import { getEvents } from '@/lib/api'
-
-export default function CalendarPage() {
-  const [events, setEvents] = useState([])
-  const [selectedMonth, setSelectedMonth] = useState(10)
-  
-  useEffect(() => {
-    async function loadEvents() {
-      const data = await getEvents()
-      
-      // Фильтруем по месяцу используя готовое поле month
-      const filtered = data.results.filter(event => event.month === selectedMonth)
-      
-      setEvents(filtered)
-    }
-    
-    loadEvents()
-  }, [selectedMonth])
-  
-  return (
-    <div>
-      <h1>Календарь событий</h1>
-      
-      <select onChange={(e) => setSelectedMonth(Number(e.target.value))}>
-        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(month => (
-          <option key={month} value={month}>
-            Месяц {month}
-          </option>
-        ))}
-      </select>
-      
-      {events.map(event => (
-        <EventCard key={event.id} event={event} />
-      ))}
-    </div>
-  )
-}
-```
-
----
-
-### Использование full_name и short_name
-
-```typescript
-// app/components/PersonCard.tsx
-
-interface Person {
-  id: number
-  last_name: string
-  first_name: string
-  middle_name: string
-  full_name: string      // ← НОВОЕ!
-  short_name: string     // ← НОВОЕ!
-  birth_date: string
-  death_date: string | null
-  image: string | null
-}
-
-export function PersonCard({ person }: { person: Person }) {
-  return (
-    <div className="person-card">
-      {/* Используем готовое full_name вместо склеивания */}
-      <h2>{person.full_name}</h2>
-      
-      {/* Используем готовое short_name для компактного отображения */}
-      <p className="subtitle">{person.short_name}</p>
-      
-      <p>{person.birth_date} – {person.death_date || 'настоящее время'}</p>
-      
-      <img src={person.image || '/placeholder.jpg'} alt={person.full_name} />
-    </div>
-  )
-}
-```
-
----
-
-### Работа с вложенными объектами
-
-```typescript
-// app/person/[id]/page.tsx
-
-interface PersonDetail {
-  id: number
-  full_name: string
-  short_name: string
-  professions: Array<{ id: number; name: string }>     // ← НОВОЕ!
-  streets: Array<{ id: number; name: string }>         // ← НОВОЕ!
-  books: Array<{ id: number; author: string; title: string }>  // ← НОВОЕ!
-  keywords: Array<{ id: number; keyword: string }>     // ← НОВОЕ!
-  events: Array<Event>                                 // ← НОВОЕ!
-}
-
-export default async function PersonPage({ params }: { params: { id: string } }) {
-  const person: PersonDetail = await getPerson(Number(params.id))
-  
-  return (
-    <div>
-      <h1>{person.full_name}</h1>
-      
-      {/* Профессии */}
-      <section>
-        <h2>Профессии</h2>
-        {person.professions.map(prof => (
-          <span key={prof.id} className="badge">{prof.name}</span>
-        ))}
-      </section>
-      
-      {/* Улицы */}
-      <section>
-        <h2>Улицы</h2>
-        {person.streets.map(street => (
-          <div key={street.id}>{street.name}</div>
-        ))}
-      </section>
-      
-      {/* События */}
-      <section>
-        <h2>Связанные события</h2>
-        {person.events.map(event => (
-          <EventCard key={event.id} event={event} />
-        ))}
-      </section>
-      
-      {/* Книги */}
-      <section>
-        <h2>Литература</h2>
-        {person.books.map(book => (
-          <div key={book.id}>
-            {book.author} — {book.title}
-          </div>
-        ))}
-      </section>
-    </div>
-  )
-}
-```
-
----
-
-## 📊 Сводная таблица изменений
-
-### Events API
-
-| Поле | Было | Стало | Тип |
-|------|------|-------|-----|
-| `street` | ID (number) | Объект {id, name} | object/null |
-| `day` | ❌ Не было | ✅ Добавлено | integer |
-| `month` | ❌ Не было | ✅ Добавлено | integer |
-| `persons` | ❌ Не было (только в Detail) | ✅ Добавлено | array |
-| `keywords` | ❌ Не было (только в Detail) | ✅ Добавлено | array |
-| `books` | ❌ Не было (только в Detail) | ✅ Добавлено | array |
-
-### Persons API
-
-| Поле | Было | Стало | Тип |
-|------|------|-------|-----|
-| `full_name` | ❌ Не было | ✅ Добавлено | string |
-| `short_name` | ❌ Не было | ✅ Добавлено | string |
-| `professions` | ❌ Не было (только в Detail) | ✅ Добавлено | array |
-| `streets` | ❌ Не было (только в Detail) | ✅ Добавлено | array |
-| `books` | ❌ Не было (только в Detail) | ✅ Добавлено | array |
-| `keywords` | ❌ Не было (только в Detail) | ✅ Добавлено | array |
-| `events` | ❌ Не было (только в Detail) | ✅ Добавлено | array |
-
----
-
-## 🎯 Миграция с старого API
-
-### ❌ Старый код (НЕ РАБОТАЕТ):
-
-```typescript
-// Склеивание ФИО вручную
-const fullName = `${person.last_name} ${person.first_name} ${person.middle_name}`
-
-// Парсинг даты для получения месяца
-const date = new Date(event.date)
-const month = date.getMonth() + 1
-
-// Использование ID улицы
-<p>Street ID: {event.street}</p>
-```
-
-### ✅ Новый код (ПРАВИЛЬНО):
-
-```typescript
-// Готовое ФИО
-<h1>{person.full_name}</h1>
-<p>{person.short_name}</p>
-
-// Готовые день и месяц
-<p>Месяц: {event.month}, День: {event.day}</p>
-
-// Вложенный объект улицы
-{event.street && <p>{event.street.name}</p>}
-```
-
----
-
-## ✅ Итого
-
-**Версия API:** 2.0  
-**Дата обновления:** 11 февраля 2026  
-**Статус:** ✅ Полностью протестировано  
-
-**Основные улучшения:**
-1. ✅ Добавлены вычисляемые поля `day`, `month` для событий
-2. ✅ Добавлены вычисляемые поля `full_name`, `short_name` для персон
-3. ✅ Вложенные объекты вместо ID для улиц
-4. ✅ Автоматическая загрузка связанных данных в Detail endpoints
-5. ✅ Консистентная структура API между List и Detail
-
-**Готово к продакшену!** 🚀
